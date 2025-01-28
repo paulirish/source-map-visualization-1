@@ -4,9 +4,21 @@
 
   & main {
     position: relative;
--    margin-top: 60px;
-+    margin-top: 20px; /* Reduced top margin */
-   }
 
-   & canvas {
+     margin-top: 20px; /* Reduced top margin */
+  }
 
+  & canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    margin: auto;
+    padding-bottom: 50px;
+  }
+
+  & section {
+    margin-top: 30px;
+    min-height: 200px;
+  }
+}

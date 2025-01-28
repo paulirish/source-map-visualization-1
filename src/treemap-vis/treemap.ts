@@ -61,6 +61,13 @@ enum Culling {
 
 const colorMode = COLOR.NONE;
 
+interface SourceMapData {
+  sources: { name: string; content: string;  Int32Array; dataLength: number }[];
+  names: string[];
+  data: Int32Array;
+}
+
+
 let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   const sources = sourceMapData.sources;
   const mappings = sourceMapData.data;
@@ -253,8 +260,8 @@ let layoutTreemap = (sortedChildren: TreeNode[], x: number, y: number, w: number
   return children
 }
 
-export let createTreemap = (metafile: Metafile): HTMLDivElement => {
-  let tree = analyzeDirectoryTree(metafile)
+export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
+  let tree = analyzeSourceMapTree(sourceMapData)
   let layoutNodes: NodeLayout[] = []
   let componentEl = document.createElement('div')
   let mainEl = document.createElement('main')

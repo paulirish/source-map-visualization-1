@@ -1,4 +1,5 @@
-       
+import { createTreemap } from "./out/treemap.js";
+
 (() => {
   
 
@@ -628,6 +629,7 @@
     // Let the browser update before parsing the source map, which may be slow
     await waitForDOM();
     const sm = parseSourceMap(map);
+    globalThis.sm = sm;
 
     // Show a progress bar if this is is going to take a while
     let charsSoFar = 0;
@@ -739,7 +741,7 @@
       console.warn("Source map data not yet loaded.");
     }
   };
-  
+
   ////////////////////////////////////////////////////////////////////////////////
   // Drawing
 
