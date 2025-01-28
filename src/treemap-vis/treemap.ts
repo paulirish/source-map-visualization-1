@@ -64,7 +64,7 @@ const colorMode = COLOR.NONE;
 interface SourceMapData {
   sources: { name: string; content: string;  Int32Array; dataLength: number }[];
   names: string[];
-  data: Int32Array;
+   Int32Array;
 }
 
 
@@ -74,6 +74,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   let totalBytes = 0; // We will estimate size based on mappings
   let maxDepth = 0;
   let nodes: TreeNode[] = [];
+  let sourceSizes: Record<string, number> = {};
 
   let sortChildren = (node: TreeNodeInProgress, isOutputFile: boolean): TreeNode => {
     let children = node.children_
@@ -91,90 +92,42 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     }
   }
 
-  for (let o in outputs) {
-    // Find the common directory prefix, not including the file name
-    let parts = splitPathBySlash(o)
-    parts.pop()
-    commonPrefix = commonPrefixFinder(parts.join('/'), commonPrefix)
-  }
-
-  for (let o in outputs) {
-    if (isSourceMapPath(o)) continue
-
-    let name = commonPrefix ? splitPathBySlash(o).slice(commonPrefix.length).join('/') : o
-    let node: TreeNodeInProgress = { name_: name, inputPath_: '', bytesInOutput_: 0, children_: {} }
-    let output = outputs[o]
-    let inputs = output.inputs
-    let bytes = output.bytes
-
-    // Accumulate the input files that contributed to this output file
-    for (let i in inputs) {
-      let depth = accumulatePath(node, stripDisabledPathPrefix(i), inputs[i].bytesInOutput)
-      if (depth > maxDepth) maxDepth = depth
-    }
-
-    node.bytesInOutput_ = bytes
-    totalBytes += bytes
-    nodes.push(sortChildren(node, true))
-  }
-
-  // Unwrap common nested directories
-  stop: while (true) {
-    let prefix: string | undefined
-    for (let node of nodes) {
-      let children = node.sortedChildren_
-      if (!children.length) continue
-      if (children.length > 1 || children[0].sortedChildren_.length !== 1) break stop
-      let name = children[0].name_
-      if (prefix === undefined) prefix = name
-      else if (prefix !== name) break stop
-    }
-    if (prefix === undefined) break
-
-    // Remove one level
-    for (let node of nodes) {
-      let children = node.sortedChildren_
-      if (children.length) {
-        children = children[0].sortedChildren_
-        for (let child of children) child.name_ = prefix + child.name_
-        node.sortedChildren_ = children
-      }
-    }
-    maxDepth--
-  }
-
-  // Add entries for the remaining space in each chunk
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
-    let childBytes = 0
-     for (let node of nodes) {
-       let children = node.sortedChildren_
-       if (!children.length) continue
-    }
-    if (childBytes < node.bytesInOutput_) {
-      node.sortedChildren_.push({
-        name_: '(unassigned)',
-        inputPath_: '',
-        sizeText_: bytesToText(node.bytesInOutput_ - childBytes),
-        bytesInOutput_: node.bytesInOutput_ - childBytes,
-        sortedChildren_: [],
-        isOutputFile_: false,
-      })
+    sourceSizes[sources[sourceIndex].name] = 0;
+  }
+
+  for (let i = 0; i < mappings.length; i += 6) {
+    const originalSourceIndex = mappings[i + 2];
+    if (originalSourceIndex >= 0 && originalSourceIndex < sources.length) {
+      const sourceName = sources[originalSourceIndex].name;
+      sourceSizes[sourceName] = (sourceSizes[sourceName] || 0) + 1; // Count mappings as size
+      totalBytes++;
     }
   }
 
-  nodes.sort(orderChildrenBySize)
+  for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
+    const source = sources[sourceIndex];
+    let node: TreeNodeInProgress = { name_: source.name, inputPath_: source.name, bytesInOutput_: sourceSizes[source.name] || 0, children_: {} };
+    nodes.push(sortChildren(node, false)); // Sources are not output files in this context
+  }
+
+
+  nodes.sort(orderChildrenBySize);
+
+
   return {
     root_: {
-      name_: '',
+      name_: 'Generated Code', // Root node name changed
       inputPath_: '',
       sizeText_: '',
       bytesInOutput_: totalBytes,
       sortedChildren_: nodes,
-      isOutputFile_: false,
+      isOutputFile_: true, // Root is considered output for visualization purposes
     },
     maxDepth_: maxDepth + 1,
-  }
-}
+  };
+};
+
 
 interface NodeLayout {
   node_: TreeNode
@@ -663,7 +616,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     if (layout) {
       let node = layout.node_
       if (!node.sortedChildren_.length) {
-        showWhyFile(metafile, node.inputPath_, node.bytesInOutput_) // Adjusted path
+        showWhyFile(sourceMapData, node.inputPath_, node.bytesInOutput_) // Adjusted to pass sourceMapData
         updateHover(e)
       } else if (layout !== currentLayout) {
         changeCurrentNode(layout)
@@ -693,7 +646,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
   componentEl.innerHTML = ''
     + `<div class="${indexStyles.summary}">`
     + '<p>'
-    + 'This visualization shows which input files were placed into each output file in the bundle. '
+    + 'This visualization shows the breakdown of generated code size by source file. ' // Description updated
     + 'Click on a node to expand and focus it.'
     + '</p>'
     + '<p>'
