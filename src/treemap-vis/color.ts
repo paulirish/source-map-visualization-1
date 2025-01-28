@@ -3,7 +3,7 @@ import {
   hueAngleToColor,
   isSourceMapPath,
   stripDisabledPathPrefix,
-} from "../helpers" // Adjusted path
+} from "./helpers" // Adjusted path
 
 export enum COLOR {
   NONE = 0,
@@ -126,83 +126,114 @@ export let cssBackgroundForInputPath = (inputPath: string): string => {
       + `<path d="M22.5 -3.5L-3.5 22.5M35.5 9.5L9.5 35.5" stroke="${color[1]}" stroke-opacity="67%" stroke-width="9.19239"/>`
       + `</svg>`
       + `')`
-+  }
-+  return color
-+}
-+
-+export let updateColorMapping = (metafile: any, color: COLOR): void => { // Metafile type removed
-+  if (previousMetafile !== metafile) {
-+    let outputs = metafile.outputs // Assuming metafile still has outputs structure for now
-+    previousMetafile = metafile
-+    previousColor = COLOR.NONE
-+    root = { name_: '', inputPath_: '', bytesInOutput_: 0, children_: {} } // TreeNodeInProgress type removed
-+
-+    // For each output file
-+    for (let o in outputs) {
-+      if (isSourceMapPath(o)) continue
-+
-+      let output = outputs[o]
-+      let inputs = output.inputs
-+
-+      // Accumulate the input files that contributed to this output file
-+      for (let i in inputs) {
-+        accumulatePath(root, stripDisabledPathPrefix(i), inputs[i].bytesInOutput)
-+      }
-+    }
-+  }
-+
-+  if (previousColor !== color) {
-+    previousColor = color
-+    colorMapping = {}
-+    colorLegendEl.innerHTML = ''
-+
-+    if (color === COLOR.DIRECTORY) {
-+      assignColorsByDirectory(colorMapping, root, 0, Math.PI * 2)
-+    } else if (color === COLOR.FORMAT) {
-+      assignColorsByFormat(colorMapping, root)
-+      colorLegendEl.innerHTML = formatLegendHTML
-+    }
-+
-+    if (afterColorMappingUpdate) afterColorMappingUpdate()
-   }
--  return color
--}
--
--export let updateColorMapping = (metafile: any, color: COLOR): void => { // Metafile type removed
--  if (previousMetafile !== metafile) {
--    let outputs = metafile.outputs // Assuming metafile still has outputs structure for now
--    previousMetafile = metafile
--    previousColor = COLOR.NONE
--    root = { name_: '', inputPath_: '', bytesInOutput_: 0, children_: {} } // TreeNodeInProgress type removed
--
--    // For each output file
--    for (let o in outputs) {
--      if (isSourceMapPath(o)) continue
--
--      let output = outputs[o]
--      let inputs = output.inputs
--
--      // Accumulate the input files that contributed to this output file
--      for (let i in inputs) {
--        accumulatePath(root, stripDisabledPathPrefix(i), inputs[i].bytesInOutput)
--      }
--    }
--  }
--
--  if (previousColor !== color) {
--    previousColor = color
--    colorMapping = {}
--    colorLegendEl.innerHTML = ''
--
--    if (color === COLOR.DIRECTORY) {
--      assignColorsByDirectory(colorMapping, root, 0, Math.PI * 2)
--    } else if (color === COLOR.FORMAT) {
--      assignColorsByFormat(colorMapping, root)
--      colorLegendEl.innerHTML = formatLegendHTML
--    }
--
--    if (afterColorMappingUpdate) afterColorMappingUpdate()
--  }
- }
+  }
+  return color
+}
 
- let assignColorsByDirectory = (
+export let updateColorMapping = (metafile: any, color: COLOR): void => { // Metafile type removed
+  if (previousMetafile !== metafile) {
+       let outputs = metafile.outputs // Assuming metafile still has outputs structure for now
+    previousMetafile = metafile
+    previousColor = COLOR.NONE
+    root = { name_: '', inputPath_: '', bytesInOutput_: 0, children_: {} } // TreeNodeInProgress type removed
+
+    // For each output file
+    for (let o in outputs) {
+         if (isSourceMapPath(o)) continue
+
+      let output = outputs[o]
+      let inputs = output.inputs
+
+      // Accumulate the input files that contributed to this output file
+      for (let i in inputs) {
+           accumulatePath(root, stripDisabledPathPrefix(i), inputs[i].bytesInOutput)
+      }
+    }
+  }
+
+  if (previousColor !== color) {
+       previousColor = color
+    colorMapping = {}
+    colorLegendEl.innerHTML = ''
+
+    if (color === COLOR.DIRECTORY) {
+         assignColorsByDirectory(colorMapping, root, 0, Math.PI * 2)
+    } else if (color === COLOR.FORMAT) {
+         assignColorsByFormat(colorMapping, root)
+      colorLegendEl.innerHTML = formatLegendHTML
+    }
+
+    if (afterColorMappingUpdate) afterColorMappingUpdate()
+   }
+}
+
+let assignColorsByDirectory = (
+  colorMapping: ColorMapping,
+  node: any, // TreeNodeInProgress type removed
+  startAngle: number,
+  sweepAngle: number,
+): void => {
+  let totalBytes = node.bytesInOutput_
+  let children = node.children_
+  let sorted: any[] = [] // TreeNodeInProgress type removed
+
+  colorMapping[node.inputPath_] = hueAngleToColor(startAngle + sweepAngle / 2)
+
+  for (let file in children) {
+    sorted.push(children[file])
+  }
+
+  for (let child of sorted.sort(orderChildrenBySize)) {
+    let childSweepAngle = child.bytesInOutput_ / totalBytes * sweepAngle
+    assignColorsByDirectory(colorMapping, child, startAngle, childSweepAngle)
+    startAngle += childSweepAngle
+  }
+}
+
+export let cjsColor = hueAngleToColor(3.5)
+export let esmColor = hueAngleToColor(1)
+export let otherColor = '#CCC'
+let bothColor = [cjsColor, esmColor] as const
+
+let colorForFormats = (formats: FORMATS): Color => {
+  if (!formats) return otherColor
+  if (formats === FORMATS.CJS) return cjsColor
+  if (formats === FORMATS.ESM) return esmColor
+  return bothColor
+}
+
+export let moduleTypeLabelInputPath = (inputPath: string, prefix: string): string => {
+  let color = colorMapping[inputPath] || otherColor
+  if (color === otherColor) return ''
+  if (color === esmColor) return prefix + 'ESM'
+  if (color === cjsColor) return prefix + 'CJS'
+  return prefix + 'ESM & CJS'
+}
+
+let assignColorsByFormat = (colorMapping: ColorMapping, node: any): FORMATS => { // TreeNodeInProgress type removed
+  let children = node.children_
+  let formats: FORMATS | 0 = 0
+  let hasChild = false
+
+  for (let file in children) {
+    formats |= assignColorsByFormat(colorMapping, children[file])
+    hasChild = true
+  }
+
+  if (!hasChild) {
+    let input = previousMetafile!.inputs[node.inputPath_] // Assuming metafile still has inputs structure for now
+    let format = input && input.format
+    formats = format === 'esm' ? FORMATS.ESM : format === 'cjs' ? FORMATS.CJS : 0
+  }
+
+  colorMapping[node.inputPath_] = colorForFormats(formats)
+  return formats
+}
+
+export let colorLegendEl = document.createElement('div')
+let formatLegendHTML = ''
+  + `<span class="${styles.chit}" style="background:` + esmColor + '"></span>ESM <small>modern, faster, smaller</small>'
+  + `<span class="${styles.chit}" style="background:` + cjsColor + '"></span>CommonJS <small>legacy, slower, larger</small>'
+  + `<span class="${styles.chit}" style="background:` + otherColor + '"></span>Other'
+
+colorLegendEl.id = styles.colorLegend
