@@ -5,6 +5,7 @@ import {
   stripDisabledPathPrefix,
   bytesToText
 } from "./helpers" // Adjusted path
+import { orderChildrenBySize } from './tree'
 
 export enum COLOR {
   NONE = 0,
