@@ -60,7 +60,7 @@ enum Culling {
   Culled
 }
 
-const colorMode = COLOR.DIRECTORY;
+const colorMode = COLOR.DIRECTORY; // Changed to DIRECTORY
 
 interface SourceMapData {
   sources: { name: string; content: string;  Int32Array; dataLength: number }[];
@@ -210,6 +210,7 @@ let layoutTreemap = (sortedChildren: TreeNode[], x: number, y: number, w: number
 
 export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
   let tree = analyzeSourceMapTree(sourceMapData)
+  updateColorMapping(tree, colorMode); // Call updateColorMapping here
   let layoutNodes: NodeLayout[] = []
   let componentEl = document.createElement('div')
   let mainEl = document.createElement('main')

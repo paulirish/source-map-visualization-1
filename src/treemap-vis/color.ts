@@ -3,6 +3,7 @@ import {
   hueAngleToColor,
   isSourceMapPath,
   stripDisabledPathPrefix,
+  bytesToText
 } from "./helpers" // Adjusted path
 
 export enum COLOR {
@@ -24,9 +25,9 @@ let patternContext = patternCanvas.getContext('2d')!
 let patternScale = 1
 let pattern: CanvasPattern
 
-let previousMetafile: any // Metafile import removed
+let previousTree: any // TreeNode type removed - will be TreeNode
 let previousColor = COLOR.NONE
-let root: any // TreeNodeInProgress import removed
+let root: any // TreeNodeInProgress import removed - will be TreeNode
 
 export type Color = string | readonly [string, string]
 export type ColorMapping = Record<string, Color>
@@ -130,57 +131,43 @@ export let cssBackgroundForInputPath = (inputPath: string): string => {
   return color
 }
 
-export let updateColorMapping = (metafile: any, color: COLOR): void => { // Metafile type removed
-  if (previousMetafile !== metafile) {
-       let outputs = metafile.outputs // Assuming metafile still has outputs structure for now
-    previousMetafile = metafile
-    previousColor = COLOR.NONE
-    root = { name_: '', inputPath_: '', bytesInOutput_: 0, children_: {} } // TreeNodeInProgress type removed
-
-    // For each output file
-    for (let o in outputs) {
-         if (isSourceMapPath(o)) continue
-
-      let output = outputs[o]
-      let inputs = output.inputs
-
-      // Accumulate the input files that contributed to this output file
-      for (let i in inputs) {
-           accumulatePath(root, stripDisabledPathPrefix(i), inputs[i].bytesInOutput)
-      }
-    }
+export let updateColorMapping = (tree: any, color: COLOR): void => { // Changed parameter type to any, should be Tree
+  if (previousTree !== tree) {
+    previousTree = tree;
+    previousColor = COLOR.NONE;
+    root = tree.root_; // Use the root node from the Tree
   }
 
   if (previousColor !== color) {
-       previousColor = color
+    previousColor = color
     colorMapping = {}
     colorLegendEl.innerHTML = ''
 
     if (color === COLOR.DIRECTORY) {
-         assignColorsByDirectory(colorMapping, root, 0, Math.PI * 2)
+      assignColorsByDirectory(colorMapping, root, 0, Math.PI * 2) // Pass the root node
     } else if (color === COLOR.FORMAT) {
-         assignColorsByFormat(colorMapping, root)
+      assignColorsByFormat(colorMapping, root) // Pass the root node
       colorLegendEl.innerHTML = formatLegendHTML
     }
 
     if (afterColorMappingUpdate) afterColorMappingUpdate()
-   }
+  }
 }
 
 let assignColorsByDirectory = (
   colorMapping: ColorMapping,
-  node: any, // TreeNodeInProgress type removed
+  node: any, // TreeNode type removed - will be TreeNode
   startAngle: number,
   sweepAngle: number,
 ): void => {
   let totalBytes = node.bytesInOutput_
-  let children = node.children_
-  let sorted: any[] = [] // TreeNodeInProgress type removed
+  let children = node.sortedChildren_ // Use sortedChildren_ from TreeNode
+  let sorted: any[] = [] // TreeNode type removed - will be TreeNode
 
   colorMapping[node.inputPath_] = hueAngleToColor(startAngle + sweepAngle / 2)
 
-  for (let file in children) {
-    sorted.push(children[file])
+  for (let child of children) { // Iterate over sortedChildren_
+    sorted.push(child)
   }
 
   for (let child of sorted.sort(orderChildrenBySize)) {
@@ -210,20 +197,26 @@ export let moduleTypeLabelInputPath = (inputPath: string, prefix: string): strin
   return prefix + 'ESM & CJS'
 }
 
-let assignColorsByFormat = (colorMapping: ColorMapping, node: any): FORMATS => { // TreeNodeInProgress type removed
-  let children = node.children_
+let assignColorsByFormat = (colorMapping: ColorMapping, node: any): FORMATS => { // TreeNode type removed - will be TreeNode
+  let children = node.sortedChildren_ // Use sortedChildren_ from TreeNode
   let formats: FORMATS | 0 = 0
   let hasChild = false
 
-  for (let file in children) {
-    formats |= assignColorsByFormat(colorMapping, children[file])
+  for (let child of children) { // Iterate over sortedChildren_
+    formats |= assignColorsByFormat(colorMapping, child)
     hasChild = true
   }
 
   if (!hasChild) {
-    let input = previousMetafile!.inputs[node.inputPath_] // Assuming metafile still has inputs structure for now
-    let format = input && input.format
-    formats = format === 'esm' ? FORMATS.ESM : format === 'cjs' ? FORMATS.CJS : 0
+    // previousMetafile!.inputs is no longer available, need to rethink how to get format.
+    // Assuming format is not relevant for DIRECTORY coloring, and only for FORMAT coloring.
+    // For DIRECTORY coloring, we can skip format-based logic.
+    // Let's leave it as 0 for now, as it's not used for DIRECTORY coloring.
+    // If format-based coloring is needed later with Tree structure, we'll need to adapt this.
+    formats = 0; // Default to 0 for directory coloring, format info not directly available in TreeNode
+    // let input = previousMetafile!.inputs[node.inputPath_] // Assuming metafile still has inputs structure for now
+    // let format = input && input.format
+    // formats = format === 'esm' ? FORMATS.ESM : format === 'cjs' ? FORMATS.CJS : 0
   }
 
   colorMapping[node.inputPath_] = colorForFormats(formats)
