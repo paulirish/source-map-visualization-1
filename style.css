@@ -4,9 +4,12 @@ body {
 }
 
 canvas {
-  position: fixed;
+  position: relative; /* Changed to relative */
   left: 0;
   top: 0;
+  width: 100%; /* Ensure canvas takes full width of container */
+  height: 100%; /* Ensure canvas takes full height of container */
+  display: block; /* Prevent extra spacing below canvas */
 }
 
 #dragTarget {
@@ -259,4 +262,82 @@ body[data-theme=dark] #progressBar .progress {
   top: 0;
   z-index: 30;
   right: 0;
+}
+
+.summary {
+  max-width: 600px;
+  margin: auto;
+}
+
+.tooltip {
+  position: absolute;
+  background: black;
+  color: #999;
+  border-radius: 30px;
+  padding: 0 10px;
+  font-size: 14px;
+  line-height: 30px;
+  display: none;
+  user-select: none;
+  touch-action: none;
+  pointer-events: none;
+  z-index: 1;
+  white-space: pre;
+
+  & b {
+    color: #FFF;
+  }
+}
+
+#settingsPanel :global(.chartSwitcher) {
+  position: relative;
+  margin: 50px 0;
+  display: flex;
+  justify-content: center;
+
+  &:after {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0.5em;
+    content: '';
+    display: block;
+    border: 1px solid #FFCF00;
+    z-index: -1;
+  }
+
+  & span {
+    background: var(--bg);
+    padding: 0 1em;
+    border-left: 2px solid #FFCF00;
+  }
+
+  & span:first-child {
+    border: none;
+  }
+}
+
+#settingsPanel  a {
+  text-decoration: none;
+  color: var(--fg);
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &.active {
+    font-weight: bold;
+    color: var(--fg-on);
+  }
+}
+
+:global(#chartPanel) {
+  display: flex; /* Use flexbox to stack canvases vertically */
+  flex-direction: column; /* Stack items vertically */
+}
+
+:global(#chartPanel) > div { /* Target the div created by createTreemap */
+  height: 50vh; /* Set each chart container to 50% viewport height */
+  position: relative; /* Needed for absolute positioning of canvas within */
+  overflow: hidden; /* Prevent scrollbars if content overflows */
 }
