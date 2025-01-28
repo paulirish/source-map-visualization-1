@@ -6,6 +6,7 @@ import {
   COLOR,
   canvasFillStyleForInputPath,
   colorLegendEl,
+  updateColorMapping,
   cssBackgroundForInputPath,
   moduleTypeLabelInputPath,
   setAfterColorMappingUpdate,
@@ -59,7 +60,7 @@ enum Culling {
   Culled
 }
 
-const colorMode = COLOR.NONE;
+const colorMode = COLOR.DIRECTORY;
 
 interface SourceMapData {
   sources: { name: string; content: string;  Int32Array; dataLength: number }[];
@@ -122,7 +123,6 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     maxDepth_: maxDepth + 1,
   };
 };
-
 
 interface NodeLayout {
   node_: TreeNode
