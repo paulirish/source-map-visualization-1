@@ -133,12 +133,13 @@ export let shortenDataURLForDisplay = (path: string): string => {
 }
 
 export let splitPathBySlash = (path: string): string[] => {
+  console.log(path);
   // Treat data URLs (e.g. "data:text/plain;base64,ABCD") as a single path element
   if (path.startsWith('data:') && path.indexOf(',') >= 0) {
     return [path]
   }
 
-  const parts = path.split('/')
+  const parts = path.replaceAll('../', '').split(/\/|:/)
 
   // Replace ['a:', '', 'b'] at the start of the path with ['a://b']. This
   // handles paths that look like a URL scheme such as "https://example.com".
