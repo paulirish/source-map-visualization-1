@@ -73,8 +73,14 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   const mappings = sourceMapData.data;
   let totalBytes = 0; // We will estimate size based on mappings
   let maxDepth = 0;
-  let nodes: TreeNode[] = [];
   let sourceSizes: Record<string, number> = {};
+
+  let rootNode: TreeNodeInProgress = {
+    name_: 'root', // Generic root name
+    inputPath_: '',
+    bytesInOutput_: 0,
+    children_: {},
+  };
 
   let sortChildren = (node: TreeNodeInProgress, isOutputFile: boolean): TreeNode => {
     let children = node.children_
@@ -107,23 +113,12 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
 
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     const source = sources[sourceIndex];
-    let node: TreeNodeInProgress = { name_: source.name, inputPath_: source.name, bytesInOutput_: sourceSizes[source.name] || 0, children_: {} };
-    nodes.push(sortChildren(node, false)); // Sources are not output files in this context
+    accumulatePath(rootNode, source.name, sourceSizes[source.name] || 0);
   }
 
 
-  nodes.sort(orderChildrenBySize);
-
-
   return {
-    root_: {
-      name_: 'Generated Code', // Root node name changed
-      inputPath_: '',
-      sizeText_: '',
-      bytesInOutput_: totalBytes,
-      sortedChildren_: nodes,
-      isOutputFile_: true, // Root is considered output for visualization purposes
-    },
+    root_: sortChildren(rootNode, true), // Sort the root children and mark root as outputFile for visualization
     maxDepth_: maxDepth + 1,
   };
 };
@@ -647,6 +642,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     + `<div class="${indexStyles.summary}">`
     + '<p>'
     + 'This visualization shows the breakdown of generated code size by source file. ' // Description updated
+    + 'File paths are nested to represent directory structure.'
     + 'Click on a node to expand and focus it.'
     + '</p>'
     + '<p>'
