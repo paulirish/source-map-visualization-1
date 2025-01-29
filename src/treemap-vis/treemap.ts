@@ -78,6 +78,22 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   let nodes: TreeNode[] = [];
 
 
+  let rootNode: TreeNodeInProgress = {
+    name_: '', 
+    inputPath_: '',
+    bytesInOutput_: 0,
+    children_: {
+      [sourceMapData.file]: {
+         name_: sourceMapData.file, 
+        inputPath_: '',
+        bytesInOutput_: 0,
+        children_: {},
+        origPath: '',
+      },
+    },
+    origPath: '', // added origPath
+  };
+
 
   let sortChildren = (node: TreeNodeInProgress, isOutputFile: boolean): TreeNode => {
     let children = node.children_
@@ -85,7 +101,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     for (let file in children) {
       sorted.push(sortChildren(children[file], false))
     }
-    let name = commonPrefix ? splitPathBySlash(node.name_).slice(commonPrefix.length).join('/') : node.name_
+    let name =  commonPrefix ? splitPathBySlash(node.name_).slice(commonPrefix.length).join('/') : node.name_
     return {
       name_: name,
       inputPath_: node.inputPath_,
@@ -97,127 +113,25 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   }
 
 
-
-  for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
-    // Find the common directory prefix, not including the file name
-
-    const o = sources[sourceIndex].name;
-    let parts = splitPathBySlash(o)
-    parts.pop()
-    commonPrefix = commonPrefixFinder(parts.join('/'), commonPrefix)
-  }
-
-  const rootChildren: TreeNodeInProgress['children_'] = {};
-
-
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     const source = sources[sourceIndex];
-    const o = sources[sourceIndex].name;
-    if (isSourceMapPath(o)) continue
-
-    let name = commonPrefix ? splitPathBySlash(o).slice(commonPrefix.length).join('/') : o
-    let node: TreeNodeInProgress = { name_: name, inputPath_: '', bytesInOutput_: 0, children_: {} }
-
-    // Accumulate the input files that contributed to this output file
-    const dirChildren = sources.filter(e => e.name.startsWith(o) && e.name !== o);
-    for (let i = 0; i < dirChildren.length; i++) {
-      let depth = accumulatePath(node, dirChildren[i].name, sourceSizes[dirChildren[i].name] || 0);
-      if (depth > maxDepth) maxDepth = depth
-    }
-
-    node.bytesInOutput_ = source.mappedByteCount;
-    totalBytes += source.mappedByteCount;
-    // nodes.push(sortChildren(node, true))
-    rootChildren[name] = node;
+    if (isSourceMapPath(source.name)) continue;
+    let depth = accumulatePath(rootNode.children_[sourceMapData.file], source.name, source.mappedByteCount);
+    if (depth > maxDepth) maxDepth = depth
   }
 
-  let rootNode: TreeNodeInProgress = {
-    name_: sourceMapData.file, // Generic root name
-    inputPath_: commonPrefix,
-    bytesInOutput_: totalBytes,
-    children_: rootChildren,
-  };
-  nodes.push(sortChildren(rootNode, true));
+  // manually sum root because reasons.
+  rootNode.bytesInOutput_ = Object.values(rootNode.children_).reduce((sum, child) => sum + child.bytesInOutput_, 0)
 
 
-  // Unwrap common nested directories
-  stop: while (true) {
-    let prefix: string | undefined
-    for (let node of nodes) {
-      let children = node.sortedChildren_
-      if (!children.length) continue
-      if (children.length > 1 || children[0].sortedChildren_.length !== 1) break stop
-      let name = children[0].name_
-      if (prefix === undefined) prefix = name
-      else if (prefix !== name) break stop
-    }
-    if (prefix === undefined) break
-
-    // Remove one level
-    for (let node of nodes) {
-      let children = node.sortedChildren_
-      if (children.length) {
-        children = children[0].sortedChildren_
-        for (let child of children) child.name_ = prefix + child.name_
-        node.sortedChildren_ = children
-      }
-    }
-    maxDepth--
-  }
-
-  // const encoder = new TextEncoder();
-  // const getByteLength = str => encoder.encode(str).length;
-  // for (const source of sourceMapData.sources) {
-  // const sourceData = source.data;
-  // for (let i = 0; i < sourceData.length; i += 6) {
-  //   const line = sourceData[i + 0];
-  //   const col = sourceData[i + 1];
-  //   const originalSourceIndex = sourceData[i + 2];
-  //   const origLine = sourceData[i + 3];
-  //   const origCol = sourceData[i + 4];
-  //   const nameIdx = sourceData[i + 5];
-
-  //   const nextLine = sourceData[i + 0 + 6];
-  //   const nextCol = sourceData[i + 1 + 6];
-  //   let mappingLength = 0;
-  //   if (nextLine === line) {
-  //     mappingLength = nextCol - col + 0;
-  //    } else {
-  //      mappingLength = getByteLength(source.dataLength.toString()) - col;
-  //   }
-  // }
-  // }
-
-
-  // Add entries for the remaining space in each chunk
-  for (let node of nodes) {
-    let childBytes = 0
-    for (let child of node.sortedChildren_) {
-      childBytes += child.bytesInOutput_
-    }
-    if (node.sortedChildren_.length > 0 && childBytes < node.bytesInOutput_) {
-      node.sortedChildren_.push({
-        name_: '(unassigned)',
-        inputPath_: '',
-        sizeText_: bytesToText(node.bytesInOutput_ - childBytes),
-        bytesInOutput_: node.bytesInOutput_ - childBytes,
-        sortedChildren_: [],
-        isOutputFile_: false,
-      })
-    }
-  }
-
-  nodes.sort(orderChildrenBySize)
+  const root_ = sortChildren(rootNode, false);
+  // hack to ensure bundle is otuputfile.
+  root_.sortedChildren_.forEach(child => {
+    child.isOutputFile_ = true;
+  });
 
   return {
-    root_: {
-      name_: '',
-      inputPath_: '',
-      sizeText_: '',
-      bytesInOutput_: totalBytes,
-      sortedChildren_: nodes,
-      isOutputFile_: false,
-    },
+    root_: root_,
     maxDepth_: maxDepth + 1,
   }
 }
