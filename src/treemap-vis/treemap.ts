@@ -27,6 +27,7 @@ import {
 interface TreeNode {
   name_: string
   inputPath_: string
+  origPath: string
   sizeText_: string
   bytesInOutput_: number
   sortedChildren_: TreeNode[]
@@ -77,6 +78,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   let rootNode: TreeNodeInProgress = {
     name_: 'root', // Generic root name
     inputPath_: '',
+    origPath: '',
     bytesInOutput_: 0,
     children_: {},
   };
@@ -90,6 +92,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     return {
       name_: node.name_,
       inputPath_: node.inputPath_,
+      origPath: node.origPath,
       sizeText_: bytesToText(node.bytesInOutput_),
       bytesInOutput_: node.bytesInOutput_,
       sortedChildren_: sorted.sort(orderChildrenBySize),
@@ -631,7 +634,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     if (layout) {
       let node = layout.node_
       if (!node.sortedChildren_.length) {
-        showWhyFile(sourceMapData, node.inputPath_, node.bytesInOutput_) // Adjusted to pass sourceMapData
+        showWhyFile(sourceMapData, node.origPath, node.bytesInOutput_) // Adjusted to pass sourceMapData
         updateHover(e)
       } else if (layout !== currentLayout) {
         changeCurrentNode(layout)

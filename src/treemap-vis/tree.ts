@@ -32,6 +32,7 @@ export let accumulatePath = (root: TreeNodeInProgress, path: string, bytesInOutp
       child = {
         name_: name,
         inputPath_: inputPath,
+        origPath: path,
         bytesInOutput_: 0,
         children_: {},
       }
