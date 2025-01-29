@@ -75,7 +75,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   let maxDepth = 0;
   let commonPrefix: string[] | undefined
   let sourceSizes: Record<string, number> = {};
-  let nodes: TreeNode[] = [];
+
 
 
 
@@ -116,24 +116,17 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     if (isSourceMapPath(o)) continue
 
     let name = commonPrefix ? splitPathBySlash(o).slice(commonPrefix.length).join('/') : o
-    let node: TreeNodeInProgress = { name_: name, inputPath_: '', bytesInOutput_: 0, children_: {} }
-
-    // Accumulate the input files that contributed to this output file
-    const dirChildren = sources.filter(e => e.name.startsWith(o) && e.name !== o);
-    for (let i = 0; i < dirChildren.length; i++) {
-      let depth = accumulatePath(node, dirChildren[i].name, sourceSizes[dirChildren[i].name] || 0);
-      if (depth > maxDepth) maxDepth = depth
-    }
-
-    node.bytesInOutput_ = source.mappedByteCount;
+    let node: TreeNodeInProgress = { name_: name, inputPath_: o, origPath: o, bytesInOutput_: 0, children_: {} }
+    let depth = accumulatePath(node, o, source.mappedByteCount);
+    if (depth > maxDepth) maxDepth = depth
     totalBytes += source.mappedByteCount;
-    // nodes.push(sortChildren(node, true))
-    rootChildren[name] = node;
   }
 
+  let nodes: TreeNode[] = [];
   let rootNode: TreeNodeInProgress = {
-    name_: sourceMapData.file, // Generic root name
+    name_: sourceMapData.file,
     inputPath_: commonPrefix,
+    origPath: commonPrefix,
     bytesInOutput_: totalBytes,
     children_: rootChildren,
   };
