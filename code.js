@@ -10,7 +10,6 @@ import { createTreemap } from "./out/treemap.js";
   const dragTarget = document.getElementById('dragTarget');
   const uploadFiles = document.getElementById('uploadFiles');
   const loadExample = document.getElementById('loadExample');
-  const useTreemap = document.getElementById('useTreemap'); // Get the treemap button
   
   let dragging = 0;
   let filesInput;
@@ -73,7 +72,6 @@ import { createTreemap } from "./out/treemap.js";
   const originalStatus = document.getElementById('originalStatus');
   const generatedStatus = document.getElementById('generatedStatus');
   const chartPanel = document.getElementById('chartPanel'); // Get chart panel
-  let currentVisualization = null; // Track current visualization
 
   function isProbablySourceMap(file) {
     return file.name.endsWith('.map') || file.name.endsWith('.json');
@@ -673,7 +671,7 @@ import { createTreemap } from "./out/treemap.js";
               x: 0,
               y: toolbarHeight,
               width: (innerWidth >>> 1) - (splitterWidth >> 1),
-              height: innerHeight - toolbarHeight - statusBarHeight,
+              height: innerHeight * .4 - toolbarHeight - statusBarHeight,
             };
           },
         });
@@ -699,7 +697,7 @@ import { createTreemap } from "./out/treemap.js";
           x,
           y: toolbarHeight,
           width: innerWidth - x,
-          height: innerHeight - toolbarHeight - statusBarHeight,
+          height: innerHeight * 0.4 - toolbarHeight - statusBarHeight,
         };
       },
     });
@@ -727,20 +725,19 @@ import { createTreemap } from "./out/treemap.js";
     if (isProgressVisible) progressBarOverlay.style.display = 'none';
     const endTime = Date.now();
     console.log(`Finished loading in ${endTime - startTime}ms`);
-  }
+  
 
 
   // Treemap visualization integration
-  useTreemap.onclick = () => {
-    if (sm) {
+    if (globalThis.sm) {
       chartPanel.innerHTML = ''; // Clear existing chart
-      const treemapVis = createTreemap(sm); // Call createTreemap with source map data
+      const treemapVis = createTreemap(globalThis.sm); // Call createTreemap with source map data
       chartPanel.appendChild(treemapVis); // Add treemap to chart panel
-      currentVisualization = 'treemap'; // Update visualization tracker
     } else {
       console.warn("Source map data not yet loaded.");
     }
-  };
+
+  }
 
   ////////////////////////////////////////////////////////////////////////////////
   // Drawing
@@ -815,8 +812,8 @@ import { createTreemap } from "./out/treemap.js";
       localStorage.setItem('wrap', wrap);
     } catch (e) {
     }
-    if (originalTextArea) originalTextArea.updateAfterWrapChange();
-    if (generatedTextArea) generatedTextArea.updateAfterWrapChange();
+    originalTextArea?.updateAfterWrapChange();
+    generatedTextArea?.updateAfterWrapChange();
     isInvalid = true;
   };
 
@@ -1868,7 +1865,7 @@ import { createTreemap } from "./out/treemap.js";
     if (!isInvalid) return;
     isInvalid = false;
 
-    c.clearRect(0, 0, innerWidth, innerHeight);
+    c.clearRect(0, 0, innerWidth, innerHeight * 0.4);
     if (!generatedTextArea) return;
 
     const bodyStyle = getComputedStyle(document.body);
@@ -1877,7 +1874,7 @@ import { createTreemap } from "./out/treemap.js";
 
     // Draw the splitter
     c.fillStyle = 'rgba(127, 127, 127, 0.2)';
-    c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight - toolbarHeight - statusBarHeight);
+    c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight * 0.4 - toolbarHeight - statusBarHeight);
 
     // Draw the arrow between the two hover areas
     if (hover && hover.mapping && originalTextArea && originalTextArea.sourceIndex === hover.mapping.originalSource) {
@@ -1898,7 +1895,7 @@ import { createTreemap } from "./out/treemap.js";
 
         c.save();
         c.beginPath();
-        c.rect(0, toolbarHeight, innerWidth, innerHeight - toolbarHeight - statusBarHeight);
+        c.rect(0, toolbarHeight, innerWidth, innerHeight * 0.4 - toolbarHeight - statusBarHeight);
         c.clip();
 
         // Draw the curve
@@ -1936,8 +1933,8 @@ import { createTreemap } from "./out/treemap.js";
     let oldHover = hover;
     hover = null;
 
-    if (originalTextArea) originalTextArea.onmousemove(e);
-    if (generatedTextArea) generatedTextArea.onmousemove(e);
+    originalTextArea?.onmousemove(e);
+    generatedTextArea?.onmousemove(e);
 
     if (JSON.stringify(hover) !== JSON.stringify(oldHover)) {
       isInvalid = true;
@@ -1945,8 +1942,8 @@ import { createTreemap } from "./out/treemap.js";
   };
 
   document.onmousedown = e => {
-    if (originalTextArea) originalTextArea.onmousedown(e);
-    if (generatedTextArea) generatedTextArea.onmousedown(e);
+    originalTextArea?.onmousedown(e);
+    generatedTextArea?.onmousedown(e);
   };
 
   onblur = () => {
@@ -1964,7 +1961,7 @@ import { createTreemap } from "./out/treemap.js";
 
   onresize = () => {
     let width = innerWidth;
-    let height = innerHeight;
+    let height = innerHeight * .4;
     let ratio = devicePixelRatio;
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';

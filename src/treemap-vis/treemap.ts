@@ -213,7 +213,6 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
   updateColorMapping(tree, colorMode); // Call updateColorMapping here
   let layoutNodes: NodeLayout[] = []
   let componentEl = document.createElement('div')
-  let mainEl = document.createElement('main')
   let canvas = document.createElement('canvas')
   let c = canvas.getContext('2d')!
   let width = 0
@@ -266,11 +265,12 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     let oldWidth = width
     let oldHeight = height
     let ratio = window.devicePixelRatio || 1
-    width = Math.min(mainEl.clientWidth, 1600)
-    height = Math.max(Math.round(width / 2), innerHeight - 200)
+    width = innerWidth // Math.min(mainEl.clientWidth, 1600)
+    height = innerHeight * 0.6; // Math.max(Math.round(width / 2), innerHeight - 200)
     canvas.style.width = width + 'px'
     canvas.style.height = height + 'px'
-    mainEl.style.height = height + 'px'
+    canvas.style.top = innerHeight * 0.4 + 'px'
+
     canvas.width = Math.round(width * ratio)
     canvas.height = Math.round(height * ratio)
     c.scale(ratio, ratio)
@@ -639,21 +639,10 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
   setResizeEventListener(resize)
 
   componentEl.id = styles.treemapPanel
-  componentEl.innerHTML = ''
-    + `<div class="${indexStyles.summary}">`
-    + '<p>'
-    + 'This visualization shows the breakdown of generated code size by source file. ' // Description updated
-    + 'File paths are nested to represent directory structure.'
-    + 'Click on a node to expand and focus it.'
-    + '</p>'
-    + '<p>'
-    + '<b>Benefit of this chart type:</b> Makes the most of available screen area.'
-    + '</p>'
-    + '</div>'
+  componentEl.innerHTML = `<div class="${indexStyles.summary}"></div>`;
 
   tooltipEl.className = indexStyles.tooltip
-  mainEl.append(canvas)
-  componentEl.append(mainEl, tooltipEl)
+  componentEl.append(canvas, tooltipEl)
 
   let sectionEl = document.createElement('section')
   sectionEl.append(colorLegendEl)

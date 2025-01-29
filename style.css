@@ -69,7 +69,7 @@ canvas {
   position: fixed;
   box-sizing: border-box;
   left: 0;
-  bottom: 0;
+  bottom: 60%;
   right: 0;
   height: 32px;
   line-height: 32px;
@@ -254,9 +254,3 @@ body[data-theme=dark] #progressBar .progress {
   }
 }
 
-#settingsPanel {
-  position: fixed;
-  top: 0;
-  z-index: 30;
-  right: 0;
-}
