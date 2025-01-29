@@ -1,7 +1,7 @@
 import { createTreemap } from "./out/treemap.js";
 
 (() => {
-  
+
 
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -10,7 +10,7 @@ import { createTreemap } from "./out/treemap.js";
   const dragTarget = document.getElementById('dragTarget');
   const uploadFiles = document.getElementById('uploadFiles');
   const loadExample = document.getElementById('loadExample');
-  
+
   let dragging = 0;
   let filesInput;
 
@@ -378,6 +378,11 @@ import { createTreemap } from "./out/treemap.js";
   function generateInverseMappings(sources, data) {
     let longestDataLength = 0;
 
+    // Initialize byte count for each source
+    for (const source of sources) {
+      source.mappedByteCount = 0;
+    }
+
     // Scatter the mappings to the individual sources
     for (let i = 0, n = data.length; i < n; i += 6) {
       const originalSource = data[i + 2];
@@ -386,6 +391,47 @@ import { createTreemap } from "./out/treemap.js";
       const source = sources[originalSource];
       let inverseData = source.data;
       let j = source.dataLength;
+
+
+      // Calculate the length of the generated code range for this mapping.
+      let generatedLine = data[i];
+      let generatedColumn = data[i + 1];
+
+      // Find the next mapping, and use it to calculate the length
+      let nextGeneratedLine;
+      let nextGeneratedColumn;
+      let k = i + 6;
+      while (k < n) {
+        if (data[k + 2] !== originalSource) {
+          break;
+        }
+
+        nextGeneratedLine = data[k];
+        nextGeneratedColumn = data[k + 1];
+
+        if (nextGeneratedLine !== generatedLine || nextGeneratedColumn !== generatedColumn) {
+          break
+        }
+        k += 6;
+      }
+
+      let mappedByteLength;
+      if (k >= n) {
+        // The mapping goes till the end of the generated code if this is the last mapping of the source.
+        mappedByteLength = 1000; // FIX
+      } else if (nextGeneratedLine === generatedLine) {
+        // Mapping spans this generated line
+        mappedByteLength = nextGeneratedColumn - generatedColumn;
+      } else {
+        // Mapping spans one or more lines
+        // we cant directly calculate this since we don't have information about the length of the line in characters or bytes.
+        // we'll just count it as 1.
+        mappedByteLength = 1;
+      }
+
+      // Increment the mapped byte count for the source
+      source.mappedByteCount += mappedByteLength;
+
 
       // Append the mapping to the typed array
       if (j + 6 > inverseData.length) {
@@ -404,6 +450,7 @@ import { createTreemap } from "./out/treemap.js";
       source.dataLength = j;
       if (j > longestDataLength) longestDataLength = j;
     }
+
 
     // Sort the mappings for each individual source
     const temp = new Int32Array(longestDataLength);
@@ -726,10 +773,10 @@ import { createTreemap } from "./out/treemap.js";
     if (isProgressVisible) progressBarOverlay.style.display = 'none';
     const endTime = Date.now();
     console.log(`Finished loading in ${endTime - startTime}ms`);
-  
 
 
-  // Treemap visualization integration
+
+    // Treemap visualization integration
     if (globalThis.sm) {
       chartPanel.innerHTML = ''; // Clear existing chart
       const treemapVis = createTreemap(globalThis.sm); // Call createTreemap with source map data

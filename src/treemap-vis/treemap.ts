@@ -61,9 +61,9 @@ enum Culling {
 const colorMode = COLOR.DIRECTORY; // Changed to DIRECTORY
 
 interface SourceMapData {
-  sources: { name: string; content: string; Int32Array; dataLength: number }[];
+  sources: { name: string; content: string; data: Int32Array; dataLength: number }[];
   names: string[];
-  Int32Array;
+  data: Int32Array;
 }
 
 
@@ -101,13 +101,33 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     sourceSizes[sources[sourceIndex].name] = 0;
   }
 
-  for (let i = 0; i < mappings.length; i += 6) {
-    const originalSourceIndex = mappings[i + 2];
-    if (originalSourceIndex >= 0 && originalSourceIndex < sources.length) {
-      const sourceName = sources[originalSourceIndex].name;
-      sourceSizes[sourceName] = (sourceSizes[sourceName] || 0) + 1; // Count mappings as size
-      totalBytes++;
-    }
+  const encoder = new TextEncoder();
+  const getByteLength = str => encoder.encode(str).length;
+
+  for (const source of sourceMapData.sources) {
+
+    // const sourceData = source.data;
+    // for (let i = 0; i < sourceData.length; i += 6) {
+    //   const line = sourceData[i + 0];
+    //   const col = sourceData[i + 1];
+    //   const originalSourceIndex = sourceData[i + 2];
+    //   const origLine = sourceData[i + 3];
+    //   const origCol = sourceData[i + 4];
+    //   const nameIdx = sourceData[i + 5];
+
+    //   const nextLine = sourceData[i + 0 + 6];
+    //   const nextCol = sourceData[i + 1 + 6];
+    //   let mappingLength = 0;
+    //   if (nextLine === line) {
+    //     mappingLength = nextCol - col + 0;
+    //    } else {
+    //      mappingLength = getByteLength(source.dataLength.toString()) - col;
+    //   }
+
+      const sourceName = source.name;
+      sourceSizes[sourceName] = (sourceSizes[sourceName] || 0) + source.mappedByteCount; 
+      totalBytes += source.mappedByteCount;
+    // }
   }
 
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
