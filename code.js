@@ -645,7 +645,7 @@ import { createTreemap } from "./out/treemap.js";
 
     const data = decodeMappings(mappings, sources.length, names ? names.length : 0);
     generateInverseMappings(sources, data);
-    return { sources, names, data };
+    return { sources, names, data, file: json.file ?? 'bundle' };
   }
 
   const toolbarHeight = 32;

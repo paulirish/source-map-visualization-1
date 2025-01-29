@@ -27,7 +27,6 @@ import {
 interface TreeNode {
   name_: string
   inputPath_: string
-  origPath: string
   sizeText_: string
   bytesInOutput_: number
   sortedChildren_: TreeNode[]
@@ -65,6 +64,7 @@ interface SourceMapData {
   sources: { name: string; content: string; data: Int32Array; dataLength: number, mappedByteCount: number }[];
   names: string[];
   data: Int32Array;
+  file: string; // filename of bundle
 }
 
 
@@ -77,13 +77,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   let sourceSizes: Record<string, number> = {};
   let nodes: TreeNode[] = [];
 
-  let rootNode: TreeNodeInProgress = {
-    name_: 'root', // Generic root name
-    inputPath_: '',
-    origPath: '',
-    bytesInOutput_: 0,
-    children_: {},
-  };
+
 
   let sortChildren = (node: TreeNodeInProgress, isOutputFile: boolean): TreeNode => {
     let children = node.children_
@@ -95,7 +89,6 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     return {
       name_: name,
       inputPath_: node.inputPath_,
-      origPath: node.origPath,
       sizeText_: bytesToText(node.bytesInOutput_),
       bytesInOutput_: node.bytesInOutput_,
       sortedChildren_: sorted.sort(orderChildrenBySize),
@@ -107,29 +100,44 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
 
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     // Find the common directory prefix, not including the file name
+
     const o = sources[sourceIndex].name;
     let parts = splitPathBySlash(o)
     parts.pop()
     commonPrefix = commonPrefixFinder(parts.join('/'), commonPrefix)
+  }
+
+  const rootChildren: TreeNodeInProgress['children_'] = {};
 
 
+  for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
+    const source = sources[sourceIndex];
+    const o = sources[sourceIndex].name;
     if (isSourceMapPath(o)) continue
 
     let name = commonPrefix ? splitPathBySlash(o).slice(commonPrefix.length).join('/') : o
-    let node: TreeNodeInProgress = { name_: name, inputPath_: '', origPath: '', bytesInOutput_: 0, children_: {} }
+    let node: TreeNodeInProgress = { name_: name, inputPath_: '', bytesInOutput_: 0, children_: {} }
 
     // Accumulate the input files that contributed to this output file
-    // for (let i in inputs) {
-    //   let depth = accumulatePath(node, stripDisabledPathPrefix(i), inputs[i].bytesInOutput)
-    //   if (depth > maxDepth) maxDepth = depth
-    // }
+    const dirChildren = sources.filter(e => e.name.startsWith(o) && e.name !== o);
+    for (let i = 0; i < dirChildren.length; i++) {
+      let depth = accumulatePath(node, dirChildren[i].name, sourceSizes[dirChildren[i].name] || 0);
+      if (depth > maxDepth) maxDepth = depth
+    }
 
-    // node.bytesInOutput_ = bytes
-    // totalBytes += bytes
-    nodes.push(sortChildren(node, true))
-
-    sourceSizes[sources[sourceIndex].name] = 0;
+    node.bytesInOutput_ = source.mappedByteCount;
+    totalBytes += source.mappedByteCount;
+    // nodes.push(sortChildren(node, true))
+    rootChildren[name] = node;
   }
+
+  let rootNode: TreeNodeInProgress = {
+    name_: sourceMapData.file, // Generic root name
+    inputPath_: commonPrefix,
+    bytesInOutput_: totalBytes,
+    children_: rootChildren,
+  };
+  nodes.push(sortChildren(rootNode, true));
 
 
   // Unwrap common nested directories
@@ -157,41 +165,28 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     maxDepth--
   }
 
+  // const encoder = new TextEncoder();
+  // const getByteLength = str => encoder.encode(str).length;
+  // for (const source of sourceMapData.sources) {
+  // const sourceData = source.data;
+  // for (let i = 0; i < sourceData.length; i += 6) {
+  //   const line = sourceData[i + 0];
+  //   const col = sourceData[i + 1];
+  //   const originalSourceIndex = sourceData[i + 2];
+  //   const origLine = sourceData[i + 3];
+  //   const origCol = sourceData[i + 4];
+  //   const nameIdx = sourceData[i + 5];
 
-  const encoder = new TextEncoder();
-  const getByteLength = str => encoder.encode(str).length;
-
-  for (const source of sourceMapData.sources) {
-
-    // const sourceData = source.data;
-    // for (let i = 0; i < sourceData.length; i += 6) {
-    //   const line = sourceData[i + 0];
-    //   const col = sourceData[i + 1];
-    //   const originalSourceIndex = sourceData[i + 2];
-    //   const origLine = sourceData[i + 3];
-    //   const origCol = sourceData[i + 4];
-    //   const nameIdx = sourceData[i + 5];
-
-    //   const nextLine = sourceData[i + 0 + 6];
-    //   const nextCol = sourceData[i + 1 + 6];
-    //   let mappingLength = 0;
-    //   if (nextLine === line) {
-    //     mappingLength = nextCol - col + 0;
-    //    } else {
-    //      mappingLength = getByteLength(source.dataLength.toString()) - col;
-    //   }
-
-    const sourceName = source.name;
-    sourceSizes[sourceName] = (sourceSizes[sourceName] || 0) + source.mappedByteCount;
-    totalBytes += source.mappedByteCount;
-    // }
-  }
-
-  for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
-    const source = sources[sourceIndex];
-    accumulatePath(rootNode, source.name, sourceSizes[source.name] || 0);
-  }
-
+  //   const nextLine = sourceData[i + 0 + 6];
+  //   const nextCol = sourceData[i + 1 + 6];
+  //   let mappingLength = 0;
+  //   if (nextLine === line) {
+  //     mappingLength = nextCol - col + 0;
+  //    } else {
+  //      mappingLength = getByteLength(source.dataLength.toString()) - col;
+  //   }
+  // }
+  // }
 
 
   // Add entries for the remaining space in each chunk
@@ -200,11 +195,10 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     for (let child of node.sortedChildren_) {
       childBytes += child.bytesInOutput_
     }
-    if (childBytes < node.bytesInOutput_) {
+    if (node.sortedChildren_.length > 0 && childBytes < node.bytesInOutput_) {
       node.sortedChildren_.push({
         name_: '(unassigned)',
         inputPath_: '',
-        origPath: '',
         sizeText_: bytesToText(node.bytesInOutput_ - childBytes),
         bytesInOutput_: node.bytesInOutput_ - childBytes,
         sortedChildren_: [],
@@ -219,7 +213,6 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     root_: {
       name_: '',
       inputPath_: '',
-      origPath: '',
       sizeText_: '',
       bytesInOutput_: totalBytes,
       sortedChildren_: nodes,
@@ -719,7 +712,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     if (layout) {
       let node = layout.node_
       if (!node.sortedChildren_.length) {
-        showWhyFile(sourceMapData, node.origPath, node.bytesInOutput_) // Adjusted to pass sourceMapData
+        showWhyFile(sourceMapData, node, node.bytesInOutput_) // Adjusted to pass sourceMapData
         updateHover(e)
       } else if (layout !== currentLayout) {
         changeCurrentNode(layout)
