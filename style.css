@@ -254,3 +254,24 @@ body[data-theme=dark] #progressBar .progress {
   }
 }
 
+
+.tooltip {
+  position: absolute;
+  background: #333;
+  color: #999;
+  border-radius: 4px;
+  padding: 0 10px;
+  font-size: 14px;
+  line-height: 30px;
+  display: none;
+  user-select: none;
+  touch-action: none;
+  pointer-events: none;
+  z-index: 1;
+  white-space: pre;
+
+  & b {
+    color: #FFF;
+  }
+}
+

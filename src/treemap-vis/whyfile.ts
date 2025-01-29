@@ -121,6 +121,14 @@ export let computeImporters = (metafile: Metafile): Info => {
 }
 
 export let showWhyFile = (metafile: Metafile, path: string, bytesInOutput: number | null): void => {
+
+  window.fileList.value = path;
+  // create and dispatch a change event
+  const evt = new Event('change');
+  window.fileList.dispatchEvent(evt);
+
+  return;
+
   let input = metafile.inputs[path]
   let activeEl = document.activeElement
   if (!input) return

@@ -139,7 +139,9 @@ export let splitPathBySlash = (path: string): string[] => {
     return [path]
   }
 
-  const parts = path.replaceAll('../', '').split(/\/|:/)
+  const parts = path
+  // .replaceAll('../', '')
+  .split(/\/|:/)
 
   // Replace ['a:', '', 'b'] at the start of the path with ['a://b']. This
   // handles paths that look like a URL scheme such as "https://example.com".

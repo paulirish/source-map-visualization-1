@@ -712,6 +712,7 @@ import { createTreemap } from "./out/treemap.js";
       for (let sources = sm.sources, i = 0, n = sources.length; i < n; i++) {
         const option = document.createElement('option');
         option.textContent = `${i}: ${sources[i].name}`;
+        option.value = sources[i].name;
         fileList.appendChild(option);
       }
       fileList.disabled = false;
@@ -790,7 +791,7 @@ import { createTreemap } from "./out/treemap.js";
 
   const canvas = document.createElement('canvas');
   const c = canvas.getContext('2d');
-  const monospaceFont = '14px monospace';
+  const monospaceFont = '12px monospace';
   const rowHeight = 21;
   const splitterWidth = 6;
   const margin = 64;
@@ -1076,7 +1077,7 @@ import { createTreemap } from "./out/treemap.js";
 
     function computeScrollbarsAndClampScroll() {
       const { width, height } = bounds();
-      c.font = '14px monospace';
+      c.font = monospaceFont;
       const columnWidth = c.measureText(' '.repeat(64)).width / 64;
       const columnsAcross = computeColumnsAcross(width, columnWidth);
       const wrappedRows = wrappedRowsForColumns(columnsAcross);

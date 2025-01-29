@@ -514,6 +514,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     tooltipEl.style.display = 'block'
     tooltipEl.style.left = x + 'px'
     tooltipEl.style.top = y + 'px'
+    tooltipEl.classList.add('tooltip');
     tooltipEl.innerHTML = html
 
     let right = tooltipEl.offsetWidth
