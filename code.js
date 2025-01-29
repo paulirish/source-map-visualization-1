@@ -2067,7 +2067,7 @@ import { createTreemap } from "./out/treemap.js";
   ////////////////////////////////////////////////////////////////////////////////
   // Shareable URLs
 
-  function loadFromHash() {
+  async function loadFromHash() {
     try {
       // Reads a string in length-prefix form separated by a null character. This
       // format is used because it's simple and also more compact than JSON.
@@ -2083,12 +2083,12 @@ import { createTreemap } from "./out/treemap.js";
       };
 
       // Extract the length-prefixed data
-      let hash = atob(location.hash.slice(1));
+      let hash = await fromBase64(location.hash.slice(1), { gzip: true });
       const code = readBuffer();
       const map = readBuffer();
       if (hash !== '') throw 'Unexpected extra data';
 
-      finishLoading(utf8ToUTF16(code), utf8ToUTF16(map));
+      finishLoading(code, map);
     } catch (e) {
       // Clear out an invalid hash and reset the UI
       if (location.hash !== '') {
@@ -2101,30 +2101,20 @@ import { createTreemap } from "./out/treemap.js";
     }
   }
 
-  function updateHash(code, map) {
+  async function updateHash(code, map) {
     try {
       const btoaLength = n => 4 * ((n + 2) / 3 | 0)
       const kMaxURLDisplayChars = 32 * 1024; // Chrome limits URLs to 32kb in size
+      const kMaxURLLength = 500 * 1024;  // Using a lower limit than the 2MB Chrome supports. https://chromium.googlesource.com/chromium/src/+/main/docs/security/url_display_guidelines/url_display_guidelines.md#url-length
       const url = new URL(location.href);
       url.hash = '#'; // Clear the data in the hash but leave the hash prefix
       const urlLength = url.href.length;
-
-      // Do a cheap check to see if the URL will be too long
       let codeLength = `${code.length}\0`;
       let mapLength = `${map.length}\0`;
-      let finalLength = urlLength + btoaLength(codeLength.length + code.length + mapLength.length + map.length)
-      if (finalLength >= kMaxURLDisplayChars) throw 'URL estimate too long';
 
-      // Do the expensive check to see if the URL will be too long
-      code = utf16ToUTF8(code);
-      map = utf16ToUTF8(map);
-      codeLength = `${code.length}\0`;
-      mapLength = `${map.length}\0`;
-      finalLength = urlLength + btoaLength(codeLength.length + code.length + mapLength.length + map.length)
-      if (finalLength >= kMaxURLDisplayChars) throw 'URL too long';
+      const hash = '#' + (await toBase64(`${codeLength}${code}${mapLength}${map}`, { gzip: true }));
+      if (urlLength + hash.length >= kMaxURLLength) throw 'URL too long';
 
-      // Only pay the cost of building the string now that we know it'll work
-      const hash = '#' + btoa(`${codeLength}${code}${mapLength}${map}`);
       if (location.hash !== hash) {
         history.pushState({}, '', hash);
       }
@@ -2198,3 +2188,63 @@ const exampleMap = `{
   "names": ["h", "Fragment", "render", "h", "Component", "useState", "CounterClass", "props", "increment_", "value_", "decrement_", "initialValue_", "CounterFunction", "value", "setValue", "label_", "render", "h", "Fragment", "CounterClass", "label_", "initialValue_", "CounterFunction"]
 }
 `;
+
+
+/**
+ * @license
+ * Copyright 2021 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * Takes an UTF-8 string and returns a base64 encoded string.
+ * If gzip is true, the UTF-8 bytes are gzipped before base64'd, using
+ * CompressionStream (currently only in Chrome), falling back to pako
+ * (which is only used to encode in our Node tests).
+ * @param {string} string
+ * @param {{gzip: boolean}} options
+ * @return {Promise<string>}
+ */
+async function toBase64(string, options) {
+  let bytes = new TextEncoder().encode(string);
+
+  if (options.gzip) {
+      const cs = new CompressionStream('gzip');
+      const writer = cs.writable.getWriter();
+      writer.write(bytes);
+      writer.close();
+      const compAb = await new Response(cs.readable).arrayBuffer();
+      bytes = new Uint8Array(compAb);
+  }
+
+  let binaryString = '';
+  // This is ~25% faster than building the string one character at a time.
+  // https://jsbench.me/2gkoxazvjl
+  const chunkSize = 5000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binaryString += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binaryString);
+}
+
+/**
+ * @param {string} encoded
+ * @param {{gzip: boolean}} options
+ * @return {Promise<string>}
+ */
+async function fromBase64(encoded, options) {
+  if (!encoded) return encoded;
+  const binaryString = atob(encoded);
+  const bytes = Uint8Array.from(binaryString, c => c.charCodeAt(0));
+
+  if (options.gzip) {
+    const ds = new DecompressionStream('gzip');
+    const writer = ds.writable.getWriter();
+    void writer.write(bytes);
+    void writer.close();
+    return new Response(ds.readable).text();
+  } else {
+    return new TextDecoder().decode(bytes);
+  }
+}
+
