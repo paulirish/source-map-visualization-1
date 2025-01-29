@@ -79,12 +79,12 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
 
 
   let rootNode: TreeNodeInProgress = {
-    name_: '', 
+    name_: '',
     inputPath_: '',
     bytesInOutput_: 0,
     children_: {
       [sourceMapData.file]: {
-         name_: sourceMapData.file, 
+        name_: sourceMapData.file,
         inputPath_: '',
         bytesInOutput_: 0,
         children_: {},
@@ -101,7 +101,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     for (let file in children) {
       sorted.push(sortChildren(children[file], false))
     }
-    let name =  commonPrefix ? splitPathBySlash(node.name_).slice(commonPrefix.length).join('/') : node.name_
+    let name = commonPrefix ? splitPathBySlash(node.name_).slice(commonPrefix.length).join('/') : node.name_
     return {
       name_: name,
       inputPath_: node.inputPath_,
@@ -464,6 +464,8 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     }
   }
 
+  let highlightTreemapNode: TreeNode | null = null;
+
   let draw = (): void => {
     let bodyStyle = getComputedStyle(document.body)
     bgColor = bodyStyle.getPropertyValue('--bg')
@@ -475,32 +477,9 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     ellipsisWidth = c.measureText('...').width
 
     // Draw the full tree first
-    let nodeContainingHover: NodeLayout | null = null
-    let nodeContainingTarget: NodeLayout | null = null
     let transition = !currentLayout ? 0 : !animationSource
       ? animationBlend : !animationTarget ? 1 - animationBlend : 1
     bgOriginX = bgOriginY = 0
-    let highlightTreemapNode: TreeNode | null = null;
-
-    if (hover && hover.mapping && originalTextArea && originalTextArea.sourceIndex === hover.mapping.originalSource) {
-      const originalSource = sourceMapData.sources[hover.mapping.originalSource];
-      if (originalSource) {
-        const inputPath = originalSource.name;
-        const findNodeByInputPath = (nodes: NodeLayout[], targetInputPath: string): TreeNode | null => {
-          for (const n of nodes) {
-            if (n.node_.inputPath_ === targetInputPath) {
-              return n.node_;
-            }
-            const foundInChildren = findNodeByInputPath(n.children_, targetInputPath);
-            if (foundInChildren) {
-              return foundInChildren;
-            }
-          }
-          return null;
-        };
-        highlightTreemapNode = findNodeByInputPath(layoutNodes, inputPath);
-      }
-    }
 
 
     let nodeContainingHover: NodeLayout | null = null
@@ -685,5 +664,27 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
   let sectionEl = document.createElement('section')
   sectionEl.append(colorLegendEl)
   componentEl.append(sectionEl)
+
+  componentEl.highlightNode = (hover: any, sourceIndex: any) => {
+      const originalSource = sourceMapData.sources[sourceIndex];
+      if (originalSource) {
+        const inputPath = originalSource.name;
+        const findNodeByInputPath = (nodes: NodeLayout[], targetInputPath: string): TreeNode | null => {
+          for (const n of nodes) {
+            if (n.node_.inputPath_ === targetInputPath) {
+              return n.node_;
+            }
+            const foundInChildren = findNodeByInputPath(n.children_, targetInputPath);
+            if (foundInChildren) {
+              return foundInChildren;
+            }
+          }
+          return null;
+        };
+        hoveredNode =  findNodeByInputPath(layoutNodes, inputPath);
+        draw();
+      }
+  };
+
   return componentEl
 }

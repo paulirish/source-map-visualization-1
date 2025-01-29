@@ -781,6 +781,7 @@ import { createTreemap } from "./out/treemap.js";
     if (globalThis.sm) {
       chartPanel.innerHTML = ''; // Clear existing chart
       const treemapVis = createTreemap(globalThis.sm); // Call createTreemap with source map data
+      treemapVis.id = 'treemapVis';
       chartPanel.appendChild(treemapVis); // Add treemap to chart panel
     } else {
       console.warn("Source map data not yet loaded.");
@@ -1926,8 +1927,14 @@ import { createTreemap } from "./out/treemap.js";
     c.fillStyle = 'rgba(127, 127, 127, 0.2)';
     c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight * 0.4 - toolbarHeight - statusBarHeight);
 
+    if (hover?.mapping) {
+      window.treemapVis.highlightNode (hover, hover.mapping.originalSource)
+    }
+
     // Draw the arrow between the two hover areas
     if (hover && hover.mapping && originalTextArea && originalTextArea.sourceIndex === hover.mapping.originalSource) {
+
+
       const originalHoverRect = originalTextArea.getHoverRect();
       const generatedHoverRect = generatedTextArea.getHoverRect();
       if (originalHoverRect && generatedHoverRect) {
