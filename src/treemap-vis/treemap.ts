@@ -1,5 +1,3 @@
-import * as indexStyles from './index.css'
-import * as styles from './treemap.css'
 import { TreeNodeInProgress, accumulatePath, orderChildrenBySize } from './tree'
 import { isWhyFileVisible, showWhyFile } from './whyfile' // Adjusted path
 import {
@@ -63,9 +61,9 @@ enum Culling {
 const colorMode = COLOR.DIRECTORY; // Changed to DIRECTORY
 
 interface SourceMapData {
-  sources: { name: string; content: string;  Int32Array; dataLength: number }[];
+  sources: { name: string; content: string; Int32Array; dataLength: number }[];
   names: string[];
-   Int32Array;
+  Int32Array;
 }
 
 
@@ -639,10 +637,9 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
   setAfterColorMappingUpdate(draw)
   setResizeEventListener(resize)
 
-  componentEl.id = styles.treemapPanel
-  componentEl.innerHTML = `<div class="${indexStyles.summary}"></div>`;
+  componentEl.id = 'treemapPanel'; 
+  componentEl.innerHTML = `<div class="index_summary"></div>`;
 
-  tooltipEl.className = indexStyles.tooltip
   componentEl.append(canvas, tooltipEl)
 
   let sectionEl = document.createElement('section')
