@@ -120,16 +120,16 @@ export let computeImporters = (metafile: Metafile): Info => {
   }
 }
 
-export let showWhyFile = (metafile: Metafile, path: string, bytesInOutput: number | null): void => {
+export let showWhyFile = (metafile: Metafile, node: any, bytesInOutput: number | null): void => {
 
-  window.fileList.value = path;
+  window.fileList.value = node.inputPath_;
   // create and dispatch a change event
   const evt = new Event('change');
   window.fileList.dispatchEvent(evt);
 
   return;
 
-  let input = metafile.inputs[path]
+  let input = metafile.inputs[node]
   let activeEl = document.activeElement
   if (!input) return
 
@@ -146,7 +146,7 @@ export let showWhyFile = (metafile: Metafile, path: string, bytesInOutput: numbe
   let dialogEl = document.createElement('div')
   dialogEl.className = styles.dialog
   dialogEl.innerHTML = ''
-    + '<h2>' + textToHTML(path) + '</h2>'
+    + '<h2>' + textToHTML(node) + '</h2>'
     + '<p>'
     + 'Original size: <b>' + textToHTML(bytesToText(input.bytes)) + '</b>'
     + (bytesInOutput === null ? '' : '<br>Bundled size: <b>' + textToHTML(bytesToText(bytesInOutput)) + '</b>')
@@ -156,7 +156,7 @@ export let showWhyFile = (metafile: Metafile, path: string, bytesInOutput: numbe
     }).join(', ')) + '</b>' : '')
     + '</p>'
 
-  tryToExplainWhyFileIsInBundle(dialogEl, cachedInfo, path)
+  tryToExplainWhyFileIsInBundle(dialogEl, cachedInfo, node)
 
   let closeButtonEl = document.createElement('a')
   closeButtonEl.className = styles.closeButton
