@@ -346,7 +346,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     return [text, textWidth]
   }
 
-  let drawNodeBackground = (layout: NodeLayout, culling: Culling): DrawFlags => {
+  let drawNodeBackground = (layout: NodeLayout, culling: Culling, highlightNode: TreeNode | null): DrawFlags => {
     let node = layout.node_
     let [x, y, w, h] = layout.box_
     let flags =
@@ -362,10 +362,10 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     }
 
     for (let child of layout.children_) {
-      flags |= drawNodeBackground(child, culling)
+      flags |= drawNodeBackground(child, culling, highlightNode)
     }
 
-    if (culling !== Culling.Culled && !node.isOutputFile_) {
+    if (culling !== Culling.Culled && !node.isOutputFile_ && highlightNode !== node) {
       c.fillStyle = canvasFillStyleForInputPath(c, node.inputPath_, bgOriginX, bgOriginY, 1)
       if (layout.children_.length) {
         // Avoiding overdraw is probably a good idea...
@@ -382,13 +382,13 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     return flags
   }
 
-  let drawNodeForeground = (layout: NodeLayout, inCurrentNode: boolean): void => {
+  let drawNodeForeground = (layout: NodeLayout, inCurrentNode: boolean, highlightNode: TreeNode | null): void => {
     let node = layout.node_
     let [x, y, w, h] = layout.box_
     let isOutputFile = node.isOutputFile_
 
     // Draw the hover highlight
-    if (hoveredNode === node && !isOutputFile && (!currentNode || inCurrentNode)) {
+    if ((hoveredNode === node || highlightNode === node) && !isOutputFile && (!currentNode || inCurrentNode)) {
       c.fillStyle = 'rgba(255,255,255,0.5)'
       c.fillRect(x, y, w, h)
     }
@@ -459,7 +459,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
 
       // Draw the children
       for (let child of layout.children_) {
-        drawNodeForeground(child, inCurrentNode)
+        drawNodeForeground(child, inCurrentNode, highlightNode)
       }
     }
   }
@@ -480,13 +480,38 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     let transition = !currentLayout ? 0 : !animationSource
       ? animationBlend : !animationTarget ? 1 - animationBlend : 1
     bgOriginX = bgOriginY = 0
+    let highlightTreemapNode: TreeNode | null = null;
+
+    if (hover && hover.mapping && originalTextArea && originalTextArea.sourceIndex === hover.mapping.originalSource) {
+      const originalSource = sourceMapData.sources[hover.mapping.originalSource];
+      if (originalSource) {
+        const inputPath = originalSource.name;
+        const findNodeByInputPath = (nodes: NodeLayout[], targetInputPath: string): TreeNode | null => {
+          for (const n of nodes) {
+            if (n.node_.inputPath_ === targetInputPath) {
+              return n.node_;
+            }
+            const foundInChildren = findNodeByInputPath(n.children_, targetInputPath);
+            if (foundInChildren) {
+              return foundInChildren;
+            }
+          }
+          return null;
+        };
+        highlightTreemapNode = findNodeByInputPath(layoutNodes, inputPath);
+      }
+    }
+
+
+    let nodeContainingHover: NodeLayout | null = null
+    let nodeContainingTarget: NodeLayout | null = null
     for (let node of layoutNodes) {
-      let flags = drawNodeBackground(node, Culling.Enabled)
+      let flags = drawNodeBackground(node, Culling.Enabled, highlightTreemapNode)
       if (flags & DrawFlags.CONTAINS_HOVER) nodeContainingHover = node
       if (flags & DrawFlags.CONTAINS_TARGET) nodeContainingTarget = node
     }
     for (let node of layoutNodes) {
-      drawNodeForeground(node, false)
+      drawNodeForeground(node, false, highlightTreemapNode)
 
       // Fade out nodes that aren't being hovered
       if (currentLayout || (nodeContainingHover && node !== nodeContainingHover)) {
