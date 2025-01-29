@@ -62,7 +62,7 @@ enum Culling {
 const colorMode = COLOR.DIRECTORY; // Changed to DIRECTORY
 
 interface SourceMapData {
-  sources: { name: string; content: string; data: Int32Array; dataLength: number }[];
+  sources: { name: string; content: string; data: Int32Array; dataLength: number, mappedByteCount: number }[];
   names: string[];
   data: Int32Array;
 }

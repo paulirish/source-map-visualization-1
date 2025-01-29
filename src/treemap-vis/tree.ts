@@ -3,6 +3,7 @@ import { hasOwnProperty, splitPathBySlash } from "./helpers" // Adjusted path
 export interface TreeNodeInProgress {
   name_: string
   inputPath_: string
+  origPath: string
   bytesInOutput_: number
   children_: Record<string, TreeNodeInProgress>
 }

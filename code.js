@@ -91,6 +91,7 @@ import { createTreemap } from "./out/treemap.js";
     toolbar.style.display = 'none';
     statusBar.style.display = 'none';
     canvas.style.display = 'none';
+    chartPanel.innerHTML = '';
   }
 
   function showLoadingError(text) {
@@ -837,12 +838,13 @@ import { createTreemap } from "./out/treemap.js";
   });
 
   const canvas = document.createElement('canvas');
-  const c = canvas.getContext('2d');
+  const c = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
   const monospaceFont = '12px monospace';
   const rowHeight = 21;
   const splitterWidth = 6;
   const margin = 64;
   let isInvalid = true;
+
   let originalTextArea;
   let generatedTextArea;
   let hover = null;
@@ -1917,7 +1919,7 @@ import { createTreemap } from "./out/treemap.js";
     if (!generatedTextArea) return;
 
     const bodyStyle = getComputedStyle(document.body);
-    if (originalTextArea) originalTextArea.draw(bodyStyle);
+    originalTextArea?.draw(bodyStyle);
     generatedTextArea.draw(bodyStyle);
 
     // Draw the splitter
@@ -2101,11 +2103,15 @@ import { createTreemap } from "./out/treemap.js";
     }
   }
 
+  /**
+   * @param {string} code 
+   * @param {string} map 
+   */
   async function updateHash(code, map) {
     try {
       const btoaLength = n => 4 * ((n + 2) / 3 | 0)
       const kMaxURLDisplayChars = 32 * 1024; // Chrome limits URLs to 32kb in size
-      const kMaxURLLength = 500 * 1024;  // Using a lower limit than the 2MB Chrome supports. https://chromium.googlesource.com/chromium/src/+/main/docs/security/url_display_guidelines/url_display_guidelines.md#url-length
+      const kMaxURLLength = 520 * 1024;  // Using a lower limit than the 2MB Chrome supports. https://chromium.googlesource.com/chromium/src/+/main/docs/security/url_display_guidelines/url_display_guidelines.md#url-length
       const url = new URL(location.href);
       url.hash = '#'; // Clear the data in the hash but leave the hash prefix
       const urlLength = url.href.length;
