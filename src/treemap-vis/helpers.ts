@@ -133,7 +133,7 @@ export let shortenDataURLForDisplay = (path: string): string => {
 }
 
 export let splitPathBySlash = (path: string): string[] => {
-  console.log(path);
+  // console.log(path);
   // Treat data URLs (e.g. "data:text/plain;base64,ABCD") as a single path element
   if (path.startsWith('data:') && path.indexOf(',') >= 0) {
     return [path]

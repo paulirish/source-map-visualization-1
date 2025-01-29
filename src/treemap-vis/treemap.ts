@@ -73,7 +73,9 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   const mappings = sourceMapData.data;
   let totalBytes = 0; // We will estimate size based on mappings
   let maxDepth = 0;
+  let commonPrefix: string[] | undefined
   let sourceSizes: Record<string, number> = {};
+  let nodes: TreeNode[] = [];
 
   let rootNode: TreeNodeInProgress = {
     name_: 'root', // Generic root name
@@ -89,8 +91,9 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     for (let file in children) {
       sorted.push(sortChildren(children[file], false))
     }
+    let name = commonPrefix ? splitPathBySlash(node.name_).slice(commonPrefix.length).join('/') : node.name_
     return {
-      name_: node.name_,
+      name_: name,
       inputPath_: node.inputPath_,
       origPath: node.origPath,
       sizeText_: bytesToText(node.bytesInOutput_),
@@ -100,9 +103,60 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     }
   }
 
+
+
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
+    // Find the common directory prefix, not including the file name
+    const o = sources[sourceIndex].name;
+    let parts = splitPathBySlash(o)
+    parts.pop()
+    commonPrefix = commonPrefixFinder(parts.join('/'), commonPrefix)
+
+
+    if (isSourceMapPath(o)) continue
+
+    let name = commonPrefix ? splitPathBySlash(o).slice(commonPrefix.length).join('/') : o
+    let node: TreeNodeInProgress = { name_: name, inputPath_: '', origPath: '', bytesInOutput_: 0, children_: {} }
+
+    // Accumulate the input files that contributed to this output file
+    // for (let i in inputs) {
+    //   let depth = accumulatePath(node, stripDisabledPathPrefix(i), inputs[i].bytesInOutput)
+    //   if (depth > maxDepth) maxDepth = depth
+    // }
+
+    // node.bytesInOutput_ = bytes
+    // totalBytes += bytes
+    nodes.push(sortChildren(node, true))
+
     sourceSizes[sources[sourceIndex].name] = 0;
   }
+
+
+  // Unwrap common nested directories
+  stop: while (true) {
+    let prefix: string | undefined
+    for (let node of nodes) {
+      let children = node.sortedChildren_
+      if (!children.length) continue
+      if (children.length > 1 || children[0].sortedChildren_.length !== 1) break stop
+      let name = children[0].name_
+      if (prefix === undefined) prefix = name
+      else if (prefix !== name) break stop
+    }
+    if (prefix === undefined) break
+
+    // Remove one level
+    for (let node of nodes) {
+      let children = node.sortedChildren_
+      if (children.length) {
+        children = children[0].sortedChildren_
+        for (let child of children) child.name_ = prefix + child.name_
+        node.sortedChildren_ = children
+      }
+    }
+    maxDepth--
+  }
+
 
   const encoder = new TextEncoder();
   const getByteLength = str => encoder.encode(str).length;
@@ -127,9 +181,9 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     //      mappingLength = getByteLength(source.dataLength.toString()) - col;
     //   }
 
-      const sourceName = source.name;
-      sourceSizes[sourceName] = (sourceSizes[sourceName] || 0) + source.mappedByteCount; 
-      totalBytes += source.mappedByteCount;
+    const sourceName = source.name;
+    sourceSizes[sourceName] = (sourceSizes[sourceName] || 0) + source.mappedByteCount;
+    totalBytes += source.mappedByteCount;
     // }
   }
 
@@ -139,11 +193,42 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   }
 
 
+
+  // Add entries for the remaining space in each chunk
+  for (let node of nodes) {
+    let childBytes = 0
+    for (let child of node.sortedChildren_) {
+      childBytes += child.bytesInOutput_
+    }
+    if (childBytes < node.bytesInOutput_) {
+      node.sortedChildren_.push({
+        name_: '(unassigned)',
+        inputPath_: '',
+        origPath: '',
+        sizeText_: bytesToText(node.bytesInOutput_ - childBytes),
+        bytesInOutput_: node.bytesInOutput_ - childBytes,
+        sortedChildren_: [],
+        isOutputFile_: false,
+      })
+    }
+  }
+
+  nodes.sort(orderChildrenBySize)
+
   return {
-    root_: sortChildren(rootNode, true), // Sort the root children and mark root as outputFile for visualization
+    root_: {
+      name_: '',
+      inputPath_: '',
+      origPath: '',
+      sizeText_: '',
+      bytesInOutput_: totalBytes,
+      sortedChildren_: nodes,
+      isOutputFile_: false,
+    },
     maxDepth_: maxDepth + 1,
-  };
-};
+  }
+}
+
 
 interface NodeLayout {
   node_: TreeNode
@@ -660,7 +745,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
   setAfterColorMappingUpdate(draw)
   setResizeEventListener(resize)
 
-  componentEl.id = 'treemapPanel'; 
+  componentEl.id = 'treemapPanel';
   componentEl.innerHTML = `<div class="index_summary"></div>`;
 
   componentEl.append(canvas, tooltipEl)
