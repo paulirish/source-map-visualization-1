@@ -24,8 +24,9 @@ import {
   textToHTML,
 } from './helpers' // Adjusted path
 
-interface TreeNode {
+export interface TreeNode {
   name_: string
+  source: { name: string; content: string; data: Int32Array; dataLength: number, mappedByteTotal: number },
   inputPath_: string
   sizeText_: string
   bytesInOutput_: number
@@ -58,33 +59,33 @@ enum Culling {
   Culled
 }
 
-const colorMode = COLOR.DIRECTORY; // Changed to DIRECTORY
+const colorMode = [COLOR.DIRECTORY, COLOR.FORMAT][Math.round(Math.random() * .01)]; // Changed to DIRECTORY
 
-interface SourceMapData {
+export interface SourceMapData {
   sources: { name: string; content: string; data: Int32Array; dataLength: number, mappedByteTotal: number }[];
   names: string[];
   data: Int32Array;
+  mappedByteTotal: number;
   file: string; // filename of bundle
 }
 
 
 let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   const sources = sourceMapData.sources;
-  const mappings = sourceMapData.data;
-  let totalBytes = 0; // We will estimate size based on mappings
   let maxDepth = 0;
   let commonPrefix: string[] | undefined
-  let sourceSizes: Record<string, number> = {};
-  let nodes: TreeNode[] = [];
 
 
   let rootNode: TreeNodeInProgress = {
     name_: '',
+    source: {},
     inputPath_: '',
     bytesInOutput_: 0,
     children_: {
+      // If we eventually do a treemap of multiple bundles, this'll have to extrapolate.
       [sourceMapData.file]: {
         name_: sourceMapData.file,
+        source: {},
         inputPath_: '',
         bytesInOutput_: 0,
         children_: {},
@@ -104,6 +105,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     let name = commonPrefix ? splitPathBySlash(node.name_).slice(commonPrefix.length).join('/') : node.name_
     return {
       name_: name,
+      source: node.source,
       inputPath_: node.inputPath_,
       sizeText_: bytesToText(node.bytesInOutput_),
       bytesInOutput_: node.bytesInOutput_,
@@ -116,7 +118,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     const source = sources[sourceIndex];
     if (isSourceMapPath(source.name)) continue;
-    let depth = accumulatePath(rootNode.children_[sourceMapData.file], source.name, source.mappedByteTotal);
+    let depth = accumulatePath(rootNode.children_[sourceMapData.file], source);
     if (depth > maxDepth) maxDepth = depth
   }
 
@@ -628,7 +630,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     if (layout) {
       let node = layout.node_
       if (!node.sortedChildren_.length) {
-        showWhyFile(sourceMapData, node, node.bytesInOutput_) // Adjusted to pass sourceMapData
+        showWhyFile(sourceMapData, node) // Adjusted to pass sourceMapData
         updateHover(e)
       } else if (layout !== currentLayout) {
         changeCurrentNode(layout)
@@ -663,6 +665,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
   sectionEl.append(colorLegendEl)
   componentEl.append(sectionEl)
 
+  // @ts-expect-error Gross hack, you're welcome.
   componentEl.highlightNode = (hover: any, sourceIndex: any) => {
       const originalSource = sourceMapData.sources[sourceIndex];
       if (originalSource) {

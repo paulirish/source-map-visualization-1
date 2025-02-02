@@ -1,9 +1,11 @@
 import { hasOwnProperty, splitPathBySlash } from "./helpers" // Adjusted path
+import { SourceMapData } from "./treemap"
 
 export interface TreeNodeInProgress {
   name_: string
   inputPath_: string
   origPath: string
+  source: SourceMapData['sources'][0],
   bytesInOutput_: number
   children_: Record<string, TreeNodeInProgress>
 }
@@ -15,12 +17,13 @@ export let orderChildrenBySize = (
   return b.bytesInOutput_ - a.bytesInOutput_ || +(a.inputPath_ > b.inputPath_) - +(a.inputPath_ < b.inputPath_)
 }
 
-export let accumulatePath = (root: TreeNodeInProgress, path: string, bytesInOutput: number): number => {
-  let parts = splitPathBySlash(path)
+export let accumulatePath = (root: TreeNodeInProgress, source: SourceMapData['sources'][0]): number => {
+  let parts = splitPathBySlash(source.name)
   let n = parts.length
   let parent = root
   let inputPath = ''
-  root.bytesInOutput_ += bytesInOutput
+  root.bytesInOutput_ += source.mappedByteTotal;
+
 
   for (let i = 0; i < n; i++) {
     let part = parts[i]
@@ -32,15 +35,16 @@ export let accumulatePath = (root: TreeNodeInProgress, path: string, bytesInOutp
     if (!hasOwnProperty.call(children, part)) {
       child = {
         name_: name,
+        source: source,
         inputPath_: inputPath,
-        origPath: path,
+        origPath: source.name,
         bytesInOutput_: 0,
         children_: {},
       }
       children[part] = child
     }
 
-    child.bytesInOutput_ += bytesInOutput
+    child.bytesInOutput_ += source.mappedByteTotal;
     parent = child
   }
 

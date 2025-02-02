@@ -12,6 +12,7 @@ import {
   posixRelPath,
   textToHTML,
 } from './helpers';
+import { SourceMapData, TreeNode } from './treemap';
 
 interface ImportRecord {
   inputPath_: string
@@ -120,8 +121,14 @@ export let computeImporters = (metafile: Metafile): Info => {
   }
 }
 
-export let showWhyFile = (metafile: Metafile, node: any, bytesInOutput: number | null): void => {
+declare global {
+  interface Window {
+    fileList: HTMLSelectElement
+  }
+}
 
+export let showWhyFile = (sourceMapData: SourceMapData, node: TreeNode): void => {
+  console.log('showwhyfile', {sourceMapData, node});
   window.fileList.value = node.inputPath_;
   // create and dispatch a change event
   const evt = new Event('change');

@@ -779,8 +779,8 @@ import { createTreemap } from "./out/treemap.js";
         source.mappedByteTotal = byteLength(source.mappedStrings);
         unmappedByteTotal -= source.mappedByteTotal;
       }
-      console.log(codeByRowsColumns.map(line => line.join('')).join('\n'));
-      console.log('unmapped', unmappedByteTotal);
+      // console.log(codeByRowsColumns.map(line => line.join('')).join('\n'));
+      // console.log('unmapped', unmappedByteTotal);
       const unmapped = {
         mappedByteTotal: unmappedByteTotal,
         name: '(unmapped)',
