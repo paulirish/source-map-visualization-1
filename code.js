@@ -394,6 +394,7 @@ import { createTreemap } from "./out/treemap.js";
       let j = source.dataLength;
 
 
+      // *** ADDITIONS START
       // Calculate the length of the generated code range for this mapping.
       let generatedLine = data[i];
       let generatedColumn = data[i + 1];
@@ -432,6 +433,7 @@ import { createTreemap } from "./out/treemap.js";
 
       // Increment the mapped byte count for the source
       source.mappedByteCount += mappedByteLength;
+      // *** ADDITIONS END
 
 
       // Append the mapping to the typed array
