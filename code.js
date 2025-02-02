@@ -614,6 +614,23 @@ import { createTreemap } from "./out/treemap.js";
     return new Promise(r => setTimeout(r, 1));
   }
 
+  /**
+    * @typedef {object} AnalyzedLine
+    * @property {string} raw - The raw text of the line
+    * @property {number} index - The index of the character at the given column
+    * @property {number} column - The column of the character at the given index
+    * @property {number} firstRun - The index of the first run in the line
+    * @property {number} runBase - The base index of the run data for this line
+    * @property {number} runCount - The number of runs in this line
+    * @property {object} runText - A cache of the text for each run
+    * @property {number} firstMapping - The index of the first mapping that is >= the column
+    * @property {number} endOfLineIndex - The index of the end of the line
+    * @property {number} endOfLineColumn - The column of the end of the line
+    * @property {function(number): number} columnToIndex - A function that converts a column to an index
+    * @property {function(number): number} indexToColumn - A function that converts an index to a column
+    * @property {function(number): ?{startIndex: number, startColumn: number, endIndex: number, endColumn: number, isLastMappingInLine: boolean}} rangeOfMapping - A function that returns the range of a mapping
+    */
+
   async function finishLoading(code, map) {
     const startTime = Date.now();
     promptText.style.display = 'none';
@@ -721,16 +738,16 @@ import { createTreemap } from "./out/treemap.js";
     // TODO: in basic example, index.tsx should have 192 to 202 bytes
     //
     // for (let i = 0; i < 5; i++) {
-      const then = performance.now();
-      if (generatedTextArea) calculateMappedByteTotal();
-      console.log(performance.measure('calculateMappedByteTotal', {start: then, end: performance.now()}).duration);
+    const then = performance.now();
+    if (generatedTextArea) calculateMappedByteTotal();
+    console.log(performance.measure('calculateMappedByteTotal', { start: then, end: performance.now() }).duration);
     // }
 
     function calculateMappedByteTotal() {
+      const codeByRowsColumns = code.split(/\r\n|\r|\n/g).map(line => line.split(''));
       for (const source of sm.sources) {
         source.generatedRanges = [];
         source.mappedStrings = '';
-        source.unmappedContent = source.content;
       }
 
       // Iterate through mappings using generatedTextArea.lineData, for efficiency
@@ -742,21 +759,29 @@ import { createTreemap } from "./out/treemap.js";
         const generatedColumn = data[i + mappingsOffset + 1];
         const originalSource = data[i + mappingsOffset + 2];
 
-        const { rangeOfMapping, raw } = generatedTextArea.analyzeLine(generatedLine, generatedColumn, generatedColumn, 'floor');
+        /** @type {AnalyzedLine} */
+        const analyzedLine = generatedTextArea.analyzeLine(generatedLine, generatedColumn, generatedColumn, 'floor');
+        const { rangeOfMapping, raw } = analyzedLine;
+
         const range = rangeOfMapping(i);
         if (!range) continue;
 
         const textSegment = raw.slice(range.startIndex, range.endIndex);
-        // remove this text segment from source.unmappedContent
-        
         sm.sources[originalSource].generatedRanges.push(range);
         sm.sources[originalSource].mappedStrings += textSegment;
+
+        const line = codeByRowsColumns[generatedLine];
+        for (let j = range.startColumn; j < range.endColumn; j++) {
+          line[j] = 'X';
+        }
       }
 
       // Text encoding is costly, so we only call it on a concat of all the strings.
       for (const source of sm.sources) {
         source.mappedByteTotal = byteLength(source.mappedStrings);
+        console.log(source.name);
       }
+      console.log(codeByRowsColumns.map(line => line.join('')).join('\n'))
 
       // TODO: unmapped bytes
     }
@@ -1179,6 +1204,14 @@ import { createTreemap } from "./out/treemap.js";
 
     const emptyLine = { raw: '', runCount: 0 };
 
+    /**
+     * 
+     * @param {number} line 
+     * @param {number} column 
+     * @param {number} fractionalColumn 
+     * @param {string} tabStopBehavior 
+     * @returns {AnalyzedLine}
+     */
     function analyzeLine(line, column, fractionalColumn, tabStopBehavior) {
       let index = column;
       let firstRun = 0;
@@ -1375,6 +1408,7 @@ import { createTreemap } from "./out/treemap.js";
       bounds,
 
       lineData: { lines, longestColumnForLine, longestLineInColumns, runData },
+      /**  @returns {AnalyzedLine} */
       analyzeLine,
 
       updateAfterWrapChange() {
