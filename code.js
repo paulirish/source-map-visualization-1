@@ -720,38 +720,46 @@ import { createTreemap } from "./out/treemap.js";
     // mappedByteTotal calculation
     // TODO: in basic example, index.tsx should have 192 to 202 bytes
     //
-    if (generatedTextArea) calculateMappedByteTotal();
+    // for (let i = 0; i < 5; i++) {
+      const then = performance.now();
+      if (generatedTextArea) calculateMappedByteTotal();
+      console.log(performance.measure('calculateMappedByteTotal', {start: then, end: performance.now()}).duration);
+    // }
 
     function calculateMappedByteTotal() {
       for (const source of sm.sources) {
-        source.mappedByteTotal = 0;
+        source.generatedRanges = [];
+        source.mappedStrings = '';
+        source.unmappedContent = source.content;
       }
 
       // Iterate through mappings using generatedTextArea.lineData, for efficiency
-      const { lines, runData } = generatedTextArea.lineData;
-      const mappings = sm.data;
+      const data = sm.data;
       const mappingsOffset = 0; // generated mapping offset is 0
 
-      for (let i = 0; i < mappings.length; i += 6) {
-        const generatedLine = mappings[i + mappingsOffset];
-        const generatedColumn = mappings[i + mappingsOffset + 1];
-        const originalSource = mappings[i + mappingsOffset + 2];
+      for (let i = 0; i < data.length; i += 6) {
+        const generatedLine = data[i + mappingsOffset];
+        const generatedColumn = data[i + mappingsOffset + 1];
+        const originalSource = data[i + mappingsOffset + 2];
 
-        const { rangeOfMapping, raw, columnToIndex, indexToColumn } = generatedTextArea.analyzeLine(generatedLine, generatedColumn, generatedColumn, 'floor');
+        const { rangeOfMapping, raw } = generatedTextArea.analyzeLine(generatedLine, generatedColumn, generatedColumn, 'floor');
         const range = rangeOfMapping(i);
         if (!range) continue;
 
-
-        const startIndex = range.startIndex;
-        const endIndex = range.endIndex;
-
-        const textSegment = raw.slice(startIndex, endIndex);
-
-        sm.sources[originalSource].mappedByteTotal += byteLength(textSegment);
+        const textSegment = raw.slice(range.startIndex, range.endIndex);
+        // remove this text segment from source.unmappedContent
+        
+        sm.sources[originalSource].generatedRanges.push(range);
+        sm.sources[originalSource].mappedStrings += textSegment;
       }
+
+      // Text encoding is costly, so we only call it on a concat of all the strings.
+      for (const source of sm.sources) {
+        source.mappedByteTotal = byteLength(source.mappedStrings);
+      }
+
       // TODO: unmapped bytes
     }
-
 
     // Populate the file picker once there will be no more await points
     fileList.innerHTML = '';
