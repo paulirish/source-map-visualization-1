@@ -392,50 +392,18 @@ import { createTreemap } from "./out/treemap.js";
 
   /**
    * Generates inverse mappings for each source and calculates mapped byte count.
-   * @param {Array<{name: string, content: string, data: Int32Array, dataLength: number, mappedByteCount?: number}>} sources - The sources
+   * @param {Array<{name: string, content: string, data: Int32Array, dataLength: number}>} sources - The sources
    * @param {Int32Array} data - The decoded mappings
    * @param {string} generatedCodeContent
    */
   function generateInverseMappings(sources, data, generatedCodeContent) {
     let longestDataLength = 0;
-    const eol = detectEOL(generatedCodeContent);
-    const generatedLines = generatedCodeContent.split(eol);
-
-    // Initialize byte count for each source
-    for (const source of sources) {
-      source.mappedByteCount = 0;
-    }
 
     // Scatter the mappings to the individual sources
     for (let i = 0, n = data.length; i < n; i += 6) {
-      const generatedLine = data[i];
-      const generatedColumn = data[i + 1];
       const originalSource = data[i + 2];
       if (originalSource === -1) continue;
 
-      const lineIndex = generatedLine; // Still a 0-based index, no adjustment
-      const line = generatedLines[lineIndex] || '';
-
-      // Calculate lastGeneratedColumn
-      let lastGeneratedColumn;
-      const nextIndex = i + 6;
-      if (nextIndex < n && data[nextIndex] === generatedLine) {
-        lastGeneratedColumn = data[nextIndex + 1] - 1;
-      } else {
-        lastGeneratedColumn = line.length - 1;
-      }
-
-      // Ensure valid range
-      if (lastGeneratedColumn < generatedColumn) continue;
-
-      // Calculate byte length of the generated code segment
-      const substring = line.substring(generatedColumn, lastGeneratedColumn + 1);
-      const bytes = byteLength(substring);
-
-      // Update the source's mappedByteCount
-      sources[originalSource].mappedByteCount += bytes;
-
-      // Existing scattering logic...
       const source = sources[originalSource];
       let inverseData = source.data;
       let j = source.dataLength;
@@ -457,7 +425,6 @@ import { createTreemap } from "./out/treemap.js";
       source.dataLength = j;
       if (j > longestDataLength) longestDataLength = j;
     }
-
 
     // Sort the mappings for each individual source
     const temp = new Int32Array(longestDataLength);
@@ -763,7 +730,6 @@ import { createTreemap } from "./out/treemap.js";
 
     // Now, after the generatedTextArea is ready, you can do the analysis.
     if (generatedTextArea) {
-      const sourceByteCounts = new Map();
       for (const source of sm.sources) {
         source.mappedByteTotal = 0;
       }
