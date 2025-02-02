@@ -376,20 +376,6 @@ import { createTreemap } from "./out/treemap.js";
     return data.subarray(0, dataLength);
   }
 
-  function detectEOL(content) {
-    const LF = '\n';
-    const CR_LF = '\r\n';
-    return content.includes(CR_LF) ? CR_LF : LF;
-  }
-
-  const encoder = new TextEncoder();
-  const byteLength = str => encoder.encode(str).length;
-
-  // TODO: in basic example, index.tsx should have 192 to 202 bytes
-  // range objects have start and end.
-  // so i need to take all ranges, get the text within them. and then byteLength of that text.
-  // and build a sum of those byteLengths for each sourceIndex.
-
   /**
    * Generates inverse mappings for each source and calculates mapped byte count.
    * @param {Array<{name: string, content: string, data: Int32Array, dataLength: number}>} sources - The sources
@@ -727,9 +713,16 @@ import { createTreemap } from "./out/treemap.js";
     originalTextArea = finalOriginalTextArea;
     isInvalid = true;
 
+    const encoder = new TextEncoder();
+    const byteLength = str => encoder.encode(str).length;
 
-    // Now, after the generatedTextArea is ready, you can do the analysis.
-    if (generatedTextArea) {
+    //
+    // mappedByteTotal calculation
+    // TODO: in basic example, index.tsx should have 192 to 202 bytes
+    //
+    if (generatedTextArea) calculateMappedByteTotal();
+
+    function calculateMappedByteTotal() {
       for (const source of sm.sources) {
         source.mappedByteTotal = 0;
       }
@@ -753,9 +746,8 @@ import { createTreemap } from "./out/treemap.js";
         const endIndex = range.endIndex;
 
         const textSegment = raw.slice(startIndex, endIndex);
-        const byteLength = encoder.encode(textSegment).length;
 
-        sm.sources[originalSource].mappedByteTotal += byteLength;
+        sm.sources[originalSource].mappedByteTotal += byteLength(textSegment);
       }
       // TODO: unmapped bytes
     }
