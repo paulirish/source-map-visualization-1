@@ -376,6 +376,16 @@ import { createTreemap } from "./out/treemap.js";
     return data.subarray(0, dataLength);
   }
 
+  const encoder = new TextEncoder();
+  const byteLength = str => encoder.encode(str).length;
+
+  // TODO: in basic example, index.tsx should have 192 to 202 bytes 
+
+  /**
+   * Generates inverse mappings for each source and calculates mapped byte count.
+   * @param {Array<{name: string, content: string, data: Int32Array, dataLength: number, mappedByteCount?: number}>} sources - The sources
+   * @param {Int32Array} data - The decoded mappings
+   */
   function generateInverseMappings(sources, data) {
     let longestDataLength = 0;
 
@@ -394,46 +404,32 @@ import { createTreemap } from "./out/treemap.js";
       let j = source.dataLength;
 
 
-      // *** ADDITIONS START
-      // Calculate the length of the generated code range for this mapping.
-      let generatedLine = data[i];
-      let generatedColumn = data[i + 1];
+      // Calculate mapped bytes.  We use the generated line and column (data[i] and data[i+1])
+      // to get the content from the original source and compute its byte length.
+      if (source.content) { // Ensure source content is available
+        const generatedLine = data[i];
+        const generatedColumn = data[i + 1];
+        const eol = /\r\n|\r|\n/.exec(source.content)?.[0] || '\n'; // Detect EOL
 
-      // Find the next mapping, and use it to calculate the length
-      let nextGeneratedLine;
-      let nextGeneratedColumn;
-      let k = i + 6;
-      while (k < n) {
-        if (data[k + 2] !== originalSource) {
-          break;
+        const lines = source.content.split(eol);
+        const line = lines[generatedLine - 1]; // Line numbers are 1-based
+
+        if (line !== undefined) {
+          // Calculate the length of the mapped section.
+          // If the next mapping is on the same line, use its column.
+          // Otherwise, use the end of the current line.
+
+          let endColumn;
+          if (i+6 < n && data[i+2] === originalSource && data[i] === generatedLine) {
+              endColumn = data[i+1+6];
+          } else {
+              endColumn = line.length;
+          }
+
+          const mappedLength = byteLength(line.substring(generatedColumn, endColumn));
+          source.mappedByteCount += mappedLength;
         }
-
-        nextGeneratedLine = data[k];
-        nextGeneratedColumn = data[k + 1];
-
-        if (nextGeneratedLine !== generatedLine || nextGeneratedColumn !== generatedColumn) {
-          break
-        }
-        k += 6;
       }
-
-      let mappedByteLength;
-      if (k >= n) {
-        // The mapping goes till the end of the generated code if this is the last mapping of the source.
-        mappedByteLength = 1000; // FIX
-      } else if (nextGeneratedLine === generatedLine) {
-        // Mapping spans this generated line
-        mappedByteLength = nextGeneratedColumn - generatedColumn;
-      } else {
-        // Mapping spans one or more lines
-        // we cant directly calculate this since we don't have information about the length of the line in characters or bytes.
-        // we'll just count it as 1.
-        mappedByteLength = 1;
-      }
-
-      // Increment the mapped byte count for the source
-      source.mappedByteCount += mappedByteLength;
-      // *** ADDITIONS END
 
 
       // Append the mapping to the typed array
