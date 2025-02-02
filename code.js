@@ -376,18 +376,27 @@ import { createTreemap } from "./out/treemap.js";
     return data.subarray(0, dataLength);
   }
 
+  function detectEOL(content) {
+    const LF = '\n';
+    const CR_LF = '\r\n';
+    return content.includes(CR_LF) ? CR_LF : LF;
+  }
+
   const encoder = new TextEncoder();
   const byteLength = str => encoder.encode(str).length;
 
-  // TODO: in basic example, index.tsx should have 192 to 202 bytes 
+  // TODO: in basic example, index.tsx should have 192 to 202 bytes
 
   /**
    * Generates inverse mappings for each source and calculates mapped byte count.
    * @param {Array<{name: string, content: string, data: Int32Array, dataLength: number, mappedByteCount?: number}>} sources - The sources
    * @param {Int32Array} data - The decoded mappings
+   * @param {string} generatedCodeContent
    */
-  function generateInverseMappings(sources, data) {
+  function generateInverseMappings(sources, data, generatedCodeContent) {
     let longestDataLength = 0;
+    const eol = detectEOL(generatedCodeContent);
+    const generatedLines = generatedCodeContent.split(eol);
 
     // Initialize byte count for each source
     for (const source of sources) {
@@ -396,41 +405,37 @@ import { createTreemap } from "./out/treemap.js";
 
     // Scatter the mappings to the individual sources
     for (let i = 0, n = data.length; i < n; i += 6) {
+      const generatedLine = data[i];
+      const generatedColumn = data[i + 1];
       const originalSource = data[i + 2];
       if (originalSource === -1) continue;
 
+      const lineIndex = generatedLine; // Still a 0-based index, no adjustment
+      const line = generatedLines[lineIndex] || '';
+
+      // Calculate lastGeneratedColumn
+      let lastGeneratedColumn;
+      const nextIndex = i + 6;
+      if (nextIndex < n && data[nextIndex] === generatedLine) {
+        lastGeneratedColumn = data[nextIndex + 1] - 1;
+      } else {
+        lastGeneratedColumn = line.length - 1;
+      }
+
+      // Ensure valid range
+      if (lastGeneratedColumn < generatedColumn) continue;
+
+      // Calculate byte length of the generated code segment
+      const substring = line.substring(generatedColumn, lastGeneratedColumn + 1);
+      const bytes = byteLength(substring);
+
+      // Update the source's mappedByteCount
+      sources[originalSource].mappedByteCount += bytes;
+
+      // Existing scattering logic...
       const source = sources[originalSource];
       let inverseData = source.data;
       let j = source.dataLength;
-
-
-      // Calculate mapped bytes.  We use the generated line and column (data[i] and data[i+1])
-      // to get the content from the original source and compute its byte length.
-      if (source.content) { // Ensure source content is available
-        const generatedLine = data[i];
-        const generatedColumn = data[i + 1];
-        const eol = /\r\n|\r|\n/.exec(source.content)?.[0] || '\n'; // Detect EOL
-
-        const lines = source.content.split(eol);
-        const line = lines[generatedLine - 1]; // Line numbers are 1-based
-
-        if (line !== undefined) {
-          // Calculate the length of the mapped section.
-          // If the next mapping is on the same line, use its column.
-          // Otherwise, use the end of the current line.
-
-          let endColumn;
-          if (i+6 < n && data[i+2] === originalSource && data[i] === generatedLine) {
-              endColumn = data[i+1+6];
-          } else {
-              endColumn = line.length;
-          }
-
-          const mappedLength = byteLength(line.substring(generatedColumn, endColumn));
-          source.mappedByteCount += mappedLength;
-        }
-      }
-
 
       // Append the mapping to the typed array
       if (j + 6 > inverseData.length) {
@@ -521,7 +526,7 @@ import { createTreemap } from "./out/treemap.js";
     }
   }
 
-  function parseSourceMap(json) {
+  function parseSourceMap(json, code) {
     try {
       json = JSON.parse(json);
     } catch (e) {
@@ -612,7 +617,7 @@ import { createTreemap } from "./out/treemap.js";
         dataOffset += data.length;
       }
 
-      generateInverseMappings(mergedSources, mergedData);
+      generateInverseMappings(mergedSources, mergedData, code);
       return {
         sources: mergedSources,
         names: mergedNames,
@@ -642,7 +647,7 @@ import { createTreemap } from "./out/treemap.js";
     }
 
     const data = decodeMappings(mappings, sources.length, names ? names.length : 0);
-    generateInverseMappings(sources, data);
+    generateInverseMappings(sources, data, code);
     return { sources, names, data, file: json.file ?? 'bundle' };
   }
 
@@ -672,7 +677,7 @@ import { createTreemap } from "./out/treemap.js";
 
     // Let the browser update before parsing the source map, which may be slow
     await waitForDOM();
-    const sm = parseSourceMap(map);
+    const sm = parseSourceMap(map, code);
     globalThis.sm = sm;
 
     // Show a progress bar if this is is going to take a while
@@ -2109,8 +2114,8 @@ import { createTreemap } from "./out/treemap.js";
   }
 
   /**
-   * @param {string} code 
-   * @param {string} map 
+   * @param {string} code
+   * @param {string} map
    */
   async function updateHash(code, map) {
     try {
