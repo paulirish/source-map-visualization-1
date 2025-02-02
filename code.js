@@ -386,6 +386,9 @@ import { createTreemap } from "./out/treemap.js";
   const byteLength = str => encoder.encode(str).length;
 
   // TODO: in basic example, index.tsx should have 192 to 202 bytes
+  // range objects have start and end.
+  // so i need to take all ranges, get the text within them. and then byteLength of that text. 
+  // and build a sum of those byteLengths for each sourceIndex.
 
   /**
    * Generates inverse mappings for each source and calculates mapped byte count.
@@ -1041,6 +1044,7 @@ import { createTreemap } from "./out/treemap.js";
       longestLineInColumns = Math.max(longestLineInColumns, column);
       lineStartOffset += raw.length;
     }
+    console.log(lines);
 
     if (prevProgressPoint < text.length && progress) {
       await progress(text.length - prevProgressPoint);
@@ -1369,6 +1373,8 @@ import { createTreemap } from "./out/treemap.js";
     return {
       sourceIndex,
       bounds,
+
+      lineData:  { lines, longestColumnForLine, longestLineInColumns, runData },
 
       updateAfterWrapChange() {
         scrollX = 0;
