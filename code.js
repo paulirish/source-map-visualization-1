@@ -762,27 +762,25 @@ import { createTreemap } from "./out/treemap.js";
 
 
     // Now, after the generatedTextArea is ready, you can do the analysis.
-    if(generatedTextArea) {
+    if (generatedTextArea) {
       const sourceByteCounts = new Map();
       for (const source of sm.sources) {
         source.mappedByteTotal = 0;
-        // sourceByteCounts.set(source.name, { sourceIndex: sm.sources.indexOf(source), totalBytes: 0 });
       }
-      // sourceByteCounts.set('no-source', { sourceIndex: -1, totalBytes: 0 });
 
       // Iterate through mappings using generatedTextArea.lineData, for efficiency
-        const {lines, runData} = generatedTextArea.lineData;
-        const mappings = sm.data;
-        const mappingsOffset = 0; // generated mapping offset is 0
+      const { lines, runData } = generatedTextArea.lineData;
+      const mappings = sm.data;
+      const mappingsOffset = 0; // generated mapping offset is 0
 
-      for(let i = 0; i < mappings.length; i += 6) {
-          const generatedLine = mappings[i + mappingsOffset];
-          const generatedColumn = mappings[i + mappingsOffset + 1];
-          const originalSource = mappings[i + mappingsOffset + 2];
+      for (let i = 0; i < mappings.length; i += 6) {
+        const generatedLine = mappings[i + mappingsOffset];
+        const generatedColumn = mappings[i + mappingsOffset + 1];
+        const originalSource = mappings[i + mappingsOffset + 2];
 
-          const { rangeOfMapping, raw, columnToIndex, indexToColumn } = generatedTextArea.analyzeLine(generatedLine, generatedColumn, generatedColumn, 'floor');
-            const range = rangeOfMapping(i);
-           if(!range) continue;
+        const { rangeOfMapping, raw, columnToIndex, indexToColumn } = generatedTextArea.analyzeLine(generatedLine, generatedColumn, generatedColumn, 'floor');
+        const range = rangeOfMapping(i);
+        if (!range) continue;
 
 
         const startIndex = range.startIndex;
@@ -791,16 +789,9 @@ import { createTreemap } from "./out/treemap.js";
         const textSegment = raw.slice(startIndex, endIndex);
         const byteLength = encoder.encode(textSegment).length;
 
-        // let sourceMapName = originalSource == -1 ? "no-source": sm.sources[originalSource].name;
-        // const source = sourceByteCounts.get(sourceMapName);
         sm.sources[originalSource].mappedByteTotal += byteLength;
       }
-
-      // Log the results
-      // console.log("Byte counts per source:");
-      // sourceByteCounts.forEach(source => {
-      //     console.log(`Source ${source.sourceIndex}:  ${source.totalBytes} bytes`);
-      // });
+      // TODO: unmapped bytes
     }
 
 
@@ -1088,7 +1079,6 @@ import { createTreemap } from "./out/treemap.js";
       longestLineInColumns = Math.max(longestLineInColumns, column);
       lineStartOffset += raw.length;
     }
-    console.log(lines);
 
     if (prevProgressPoint < text.length && progress) {
       await progress(text.length - prevProgressPoint);
@@ -1418,7 +1408,7 @@ import { createTreemap } from "./out/treemap.js";
       sourceIndex,
       bounds,
 
-      lineData:  { lines, longestColumnForLine, longestLineInColumns, runData },
+      lineData: { lines, longestColumnForLine, longestLineInColumns, runData },
       analyzeLine,
 
       updateAfterWrapChange() {
@@ -1982,7 +1972,7 @@ import { createTreemap } from "./out/treemap.js";
     c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight * 0.4 - toolbarHeight - statusBarHeight);
 
     if (hover?.mapping) {
-      window.treemapVis.highlightNode (hover, hover.mapping.originalSource)
+      window.treemapVis.highlightNode(hover, hover.mapping.originalSource)
     }
 
     // Draw the arrow between the two hover areas
@@ -2276,12 +2266,12 @@ async function toBase64(string, options) {
   let bytes = new TextEncoder().encode(string);
 
   if (options.gzip) {
-      const cs = new CompressionStream('gzip');
-      const writer = cs.writable.getWriter();
-      writer.write(bytes);
-      writer.close();
-      const compAb = await new Response(cs.readable).arrayBuffer();
-      bytes = new Uint8Array(compAb);
+    const cs = new CompressionStream('gzip');
+    const writer = cs.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    const compAb = await new Response(cs.readable).arrayBuffer();
+    bytes = new Uint8Array(compAb);
   }
 
   let binaryString = '';
