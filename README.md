@@ -10,3 +10,10 @@ This is a visualization of JavaScript/CSS source map data, which is useful for d
 ~/code/esbtree/node_modules/.bin/esbuild  src/treemap-vis/treemap.ts --bundle   --loader:.css=local-css --loader:.html=copy --outdir=./out --target=chrome120 --watch --sourcemap=linked --format=esm
 
 ```
+
+
+todo:
+- maybe use 1000 kb instead of 1024
+- make unmapped ranges visible.
+- split eol bytes out from unmapped ones.
+- highlight ranges in text editor when hovering treemap node.

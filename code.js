@@ -735,16 +735,15 @@ import { createTreemap } from "./out/treemap.js";
 
     //
     // mappedByteTotal calculation
-    // TODO: in basic example, index.tsx should have 192 to 202 bytes
     //
-    // for (let i = 0; i < 5; i++) {
     const then = performance.now();
     if (generatedTextArea) calculateMappedByteTotal();
     console.log(performance.measure('calculateMappedByteTotal', { start: then, end: performance.now() }).duration);
-    // }
 
     function calculateMappedByteTotal() {
       const codeByRowsColumns = code.split(/\r\n|\r|\n/g).map(line => line.split(''));
+      let unmappedByteTotal = byteLength(code);
+
       for (const source of sm.sources) {
         source.generatedRanges = [];
         source.mappedStrings = '';
@@ -770,20 +769,27 @@ import { createTreemap } from "./out/treemap.js";
         sm.sources[originalSource].generatedRanges.push(range);
         sm.sources[originalSource].mappedStrings += textSegment;
 
-        const line = codeByRowsColumns[generatedLine];
         for (let j = range.startColumn; j < range.endColumn; j++) {
-          line[j] = 'X';
+          codeByRowsColumns[generatedLine][j] = '🟢';
         }
       }
 
       // Text encoding is costly, so we only call it on a concat of all the strings.
       for (const source of sm.sources) {
         source.mappedByteTotal = byteLength(source.mappedStrings);
-        console.log(source.name);
+        unmappedByteTotal -= source.mappedByteTotal;
       }
-      console.log(codeByRowsColumns.map(line => line.join('')).join('\n'))
-
-      // TODO: unmapped bytes
+      console.log(codeByRowsColumns.map(line => line.join('')).join('\n'));
+      console.log('unmapped', unmappedByteTotal);
+      const unmapped = {
+        mappedByteTotal: unmappedByteTotal,
+        name: '(unmapped)',
+        content: codeByRowsColumns.map(line => line.join('')).join('\n'),
+        data: new Int32Array(0),
+        dataLength: 0,
+        generatedRanges: [],
+      };
+      sm.sources.push(unmapped);
     }
 
     // Populate the file picker once there will be no more await points
