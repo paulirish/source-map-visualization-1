@@ -6,5 +6,7 @@ This is a visualization of JavaScript/CSS source map data, which is useful for d
 
 
 ```
-$HOME/Library/Caches/Yarn/v6/npm-@esbuild-darwin-arm64-0.19.11-533fb7f5a08c37121d82c66198263dcc1bed29bf-integrity/node_modules/@esbuild/darwin-arm64/bin/esbuild src/treemap-vis/treemap.ts --bundle   --loader:.css=local-css --loader:.html=copy --outdir=./out --target=chrome120 --watch  --sourcemap=linked --format=esm
+
+~/code/esbtree/node_modules/.bin/esbuild  src/treemap-vis/treemap.ts --bundle   --loader:.css=local-css --loader:.html=copy --outdir=./out --target=chrome120 --watch --sourcemap=linked --format=esm
+
 ```

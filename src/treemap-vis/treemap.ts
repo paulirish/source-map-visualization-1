@@ -61,7 +61,7 @@ enum Culling {
 const colorMode = COLOR.DIRECTORY; // Changed to DIRECTORY
 
 interface SourceMapData {
-  sources: { name: string; content: string; data: Int32Array; dataLength: number, mappedByteCount: number }[];
+  sources: { name: string; content: string; data: Int32Array; dataLength: number, mappedByteTotal: number }[];
   names: string[];
   data: Int32Array;
   file: string; // filename of bundle
@@ -116,7 +116,7 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     const source = sources[sourceIndex];
     if (isSourceMapPath(source.name)) continue;
-    let depth = accumulatePath(rootNode.children_[sourceMapData.file], source.name, source.mappedByteCount);
+    let depth = accumulatePath(rootNode.children_[sourceMapData.file], source.name, source.mappedByteTotal);
     if (depth > maxDepth) maxDepth = depth
   }
 

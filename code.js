@@ -387,7 +387,7 @@ import { createTreemap } from "./out/treemap.js";
 
   // TODO: in basic example, index.tsx should have 192 to 202 bytes
   // range objects have start and end.
-  // so i need to take all ranges, get the text within them. and then byteLength of that text. 
+  // so i need to take all ranges, get the text within them. and then byteLength of that text.
   // and build a sum of those byteLengths for each sourceIndex.
 
   /**
@@ -759,6 +759,50 @@ import { createTreemap } from "./out/treemap.js";
     // Only render the original text area once the generated text area is ready
     originalTextArea = finalOriginalTextArea;
     isInvalid = true;
+
+
+    // Now, after the generatedTextArea is ready, you can do the analysis.
+    if(generatedTextArea) {
+      const sourceByteCounts = new Map();
+      for (const source of sm.sources) {
+        source.mappedByteTotal = 0;
+        // sourceByteCounts.set(source.name, { sourceIndex: sm.sources.indexOf(source), totalBytes: 0 });
+      }
+      // sourceByteCounts.set('no-source', { sourceIndex: -1, totalBytes: 0 });
+
+      // Iterate through mappings using generatedTextArea.lineData, for efficiency
+        const {lines, runData} = generatedTextArea.lineData;
+        const mappings = sm.data;
+        const mappingsOffset = 0; // generated mapping offset is 0
+
+      for(let i = 0; i < mappings.length; i += 6) {
+          const generatedLine = mappings[i + mappingsOffset];
+          const generatedColumn = mappings[i + mappingsOffset + 1];
+          const originalSource = mappings[i + mappingsOffset + 2];
+
+          const { rangeOfMapping, raw, columnToIndex, indexToColumn } = generatedTextArea.analyzeLine(generatedLine, generatedColumn, generatedColumn, 'floor');
+            const range = rangeOfMapping(i);
+           if(!range) continue;
+
+
+        const startIndex = range.startIndex;
+        const endIndex = range.endIndex;
+
+        const textSegment = raw.slice(startIndex, endIndex);
+        const byteLength = encoder.encode(textSegment).length;
+
+        // let sourceMapName = originalSource == -1 ? "no-source": sm.sources[originalSource].name;
+        // const source = sourceByteCounts.get(sourceMapName);
+        sm.sources[originalSource].mappedByteTotal += byteLength;
+      }
+
+      // Log the results
+      // console.log("Byte counts per source:");
+      // sourceByteCounts.forEach(source => {
+      //     console.log(`Source ${source.sourceIndex}:  ${source.totalBytes} bytes`);
+      // });
+    }
+
 
     // Populate the file picker once there will be no more await points
     fileList.innerHTML = '';
@@ -1375,6 +1419,7 @@ import { createTreemap } from "./out/treemap.js";
       bounds,
 
       lineData:  { lines, longestColumnForLine, longestLineInColumns, runData },
+      analyzeLine,
 
       updateAfterWrapChange() {
         scrollX = 0;
