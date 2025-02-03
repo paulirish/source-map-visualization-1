@@ -73,6 +73,7 @@ const splitPct = 0.55; // vertical split percentage.
   const originalStatus = document.getElementById('originalStatus');
   const generatedStatus = document.getElementById('generatedStatus');
   const chartPanel = document.getElementById('chartPanel'); // Get chart panel
+  let splitPct = 0.55; // vertical split percentage.
   statusBar.style.bottom = `${(1 - splitPct) * 100}%`;
   progressBarOverlay.style.top = `calc(${splitPct * 100}% - 6px * 2)`;
 
@@ -613,10 +614,34 @@ const splitPct = 0.55; // vertical split percentage.
 
   const toolbarHeight = toolbar.offsetHeight || 32;
   const statusBarHeight = parseFloat(getComputedStyle(statusBar).getPropertyValue('--height')) || 32;
+  let isStatusBarDragging = false;
 
   function waitForDOM() {
     return new Promise(r => setTimeout(r, 1));
   }
+
+  statusBar.addEventListener('mousedown', e => {
+    isStatusBarDragging = true;
+    e.preventDefault(); // Prevent text selection during drag
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isStatusBarDragging) return;
+
+    // Calculate new split percentage based on mouse position
+    splitPct = Math.max(0.1, Math.min(0.9, e.pageY / innerHeight)); // Clamp value between 0.1 and 0.9 for usability
+
+    // Update styles based on new split percentage
+    statusBar.style.bottom = `${(1 - splitPct) * 100}%`;
+    progressBarOverlay.style.top = `calc(${splitPct * 100}% - 6px * 2)`;
+    canvas.style.top = innerHeight * splitPct + 'px'; // Adjust canvas position
+
+    isInvalid = true; // Trigger redraw
+  });
+
+  document.addEventListener('mouseup', () => {
+    isStatusBarDragging = false;
+  });
 
   /**
     * @typedef {object} AnalyzedLine
@@ -2120,6 +2145,7 @@ const splitPct = 0.55; // vertical split percentage.
     let ratio = devicePixelRatio;
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
+    canvas.style.top = innerHeight * splitPct + 'px'; // Ensure canvas top is updated on resize as well
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     c.scale(ratio, ratio);
