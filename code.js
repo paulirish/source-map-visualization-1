@@ -731,8 +731,13 @@ import { createTreemap } from "./out/treemap.js";
       };
       fileList.onchange = async () => {
         originalTextArea = await updateOriginalSource(fileList.selectedIndex);
-        originalTextArea.scrollTo(hover.mapping.originalColumn, hover.mapping.originalLine);
         isInvalid = true;
+      };
+
+      fileList.reveal = async () => {
+        originalTextArea = await updateOriginalSource(fileList.selectedIndex);
+        originalTextArea.scrollTo(hover.mapping.originalColumn, hover.mapping.originalLine);
+        generatedTextArea.scrollTo(hover.mapping.generatedColumn, hover.mapping.generatedLine);
       };
       finalOriginalTextArea = await updateOriginalSource(0, progress);
     }

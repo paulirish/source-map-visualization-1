@@ -726,8 +726,8 @@ const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): void => 
 
 
   window.fileList.value = node.inputPath_;
-  // create and dispatch a change event
-  const evt = new Event('change');
-  window.fileList.dispatchEvent(evt);
+  window.fileList.reveal();
+  // const evt = new Event('change');
+  // window.fileList.dispatchEvent(evt);
 
 }
