@@ -630,7 +630,7 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     if (layout) {
       let node = layout.node_
       if (!node.sortedChildren_.length) {
-        showWhyFile(sourceMapData, node) // Adjusted to pass sourceMapData
+        onNodeSelection(sourceMapData, node) 
         updateHover(e)
       } else if (layout !== currentLayout) {
         changeCurrentNode(layout)
@@ -688,4 +688,47 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
   };
 
   return componentEl
+}
+
+
+
+declare global {
+  interface Window {
+    fileList: HTMLSelectElement
+  }
+}
+
+const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): void => {
+
+  
+  const encoder = new TextEncoder();
+  const byteLength = str => encoder.encode(str).length;
+  console.log(
+    'showwhyfile', { sourceMapData, node },
+    `Original size: ` + bytesToText(byteLength(node.source.content)),
+    'Bundled size: ' + bytesToText(node.source.mappedByteTotal)
+  );
+
+  const kilo = byteLength(node.source.content) / 1000;
+  const kiloBund = node.source.mappedByteTotal / 1000;
+
+  const kibi = byteLength(node.source.content) / 1024;
+  const kibiBund = node.source.mappedByteTotal / 1024;
+  const formatter = new Intl.NumberFormat(undefined, {
+    style: 'unit',
+    unit: 'kilobyte',
+    unitDisplay: 'narrow',
+  });
+  console.log('Original size: ' + formatter.format(kilo));
+  console.log('Bundled size: ' + formatter.format(kiloBund));
+  console.log('Original size: ' + formatter.format(kibi), 'KiB');
+  console.log('Bundled size: ' + formatter.format(kibiBund), 'KiB');
+
+
+
+  window.fileList.value = node.inputPath_;
+  // create and dispatch a change event
+  const evt = new Event('change');
+  window.fileList.dispatchEvent(evt);
+
 }
