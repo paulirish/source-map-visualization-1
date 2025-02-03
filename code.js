@@ -74,6 +74,8 @@ const splitPct = 0.55; // vertical split percentage.
   const generatedStatus = document.getElementById('generatedStatus');
   const chartPanel = document.getElementById('chartPanel'); // Get chart panel
   statusBar.style.bottom = `${(1 - splitPct) * 100}%`;
+  progressBarOverlay.style.top = `calc(${splitPct * 100}% - 6px * 2)`;
+
 
   function isProbablySourceMap(file) {
     return file.name.endsWith('.map') || file.name.endsWith('.json');
@@ -648,6 +650,7 @@ const splitPct = 0.55; // vertical split percentage.
     fileList.selectedIndex = 0;
     originalTextArea = generatedTextArea = hover = null;
     isInvalid = true;
+    chartPanel.innerHTML = '';
     updateHash(code, map);
 
     // Let the browser update before parsing the source map, which may be slow
@@ -684,7 +687,7 @@ const splitPct = 0.55; // vertical split percentage.
     if (sm.sources.length > 0) {
       const updateOriginalSource = (sourceIndex, progress) => {
         const source = sm.sources[sourceIndex];
-        const textArea = createTextArea({
+        return createTextArea({
           sourceIndex,
           text: source.content,
           progress,
@@ -701,8 +704,16 @@ const splitPct = 0.55; // vertical split percentage.
             };
           },
         });
+      };
+      fileList.onchange = async () => {
+        originalTextArea = await updateOriginalSource(fileList.selectedIndex);
+        isInvalid = true;
+      };
 
+      fileList.reveal = async () => {
+        originalTextArea = await updateOriginalSource(fileList.selectedIndex);
         // Trigger hover on the first mapping of the updated source
+        const source = sm.sources[originalTextArea.sourceIndex];
         if (source.data.length > 0) {
           const firstMapping = source.data;
           const generatedLine = firstMapping[0];
@@ -713,7 +724,7 @@ const splitPct = 0.55; // vertical split percentage.
           const originalName = firstMapping[5];
 
           hover = {
-            sourceIndex: sourceIndex, // Use the sourceIndex from the function parameter
+            sourceIndex: originalTextArea.sourceIndex, // Use the sourceIndex from the function parameter
             lineIndex: originalLine,
             row: 0, // Row doesn't matter for hover logic, will be recalculated in draw()
             column: originalColumn,
@@ -729,15 +740,6 @@ const splitPct = 0.55; // vertical split percentage.
           };
           isInvalid = true;
         }
-        return textArea;
-      };
-      fileList.onchange = async () => {
-        originalTextArea = await updateOriginalSource(fileList.selectedIndex);
-        isInvalid = true;
-      };
-
-      fileList.reveal = async () => {
-        originalTextArea = await updateOriginalSource(fileList.selectedIndex);
         if (hover?.mapping) {
           originalTextArea.scrollTo(hover.mapping.originalColumn, hover.mapping.originalLine);
           generatedTextArea.scrollTo(hover.mapping.generatedColumn, hover.mapping.generatedLine);
@@ -780,7 +782,8 @@ const splitPct = 0.55; // vertical split percentage.
     console.log(performance.measure('calculateMappedByteTotal', { start: then, end: performance.now() }).duration);
 
     function calculateMappedByteTotal() {
-      const codeByRowsColumns = code.split(/\r\n|\r|\n/g).map(line => line.split(''));
+      const codeByRowsColumns = generatedTextArea.lineData.lines.map(l => l.raw.split(''));
+      // code.split(/\r\n|\r|\n/g).map(line => line.split(''));
       let unmappedByteTotal = byteLength(code);
 
       for (const source of sm.sources) {
@@ -916,7 +919,8 @@ const splitPct = 0.55; // vertical split percentage.
 
   const canvas = document.createElement('canvas');
   const c = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
-  const monospaceFont = '12px monospace';
+  const monospaceFont = '11px monospace';
+  const lineNumberFont = '10px monospace';
   const rowHeight = 21;
   const splitterWidth = 6;
   let margin = 64; // Initial value, will be recalculated
@@ -1144,10 +1148,10 @@ const splitPct = 0.55; // vertical split percentage.
     let scrollY = 0;
 
     // Calculate margin based on the widest line number
-    c.font = '11px monospace'; // Use the same font as line numbers
-    const maxLineNumber = text.split(/\r\n|\r|\n/g).length;
+    c.font = lineNumberFont; 
+    const maxLineNumber = lines.length;
     const lineNumberWidth = c.measureText(maxLineNumber.toString()).width;
-    margin = Math.max(32, Math.ceil(lineNumberWidth) + textPaddingX * 2); // Ensure a minimum margin
+    margin = lineNumberWidth + textPaddingX * 3; // Math.max(32, Math.ceil(lineNumberWidth) + textPaddingX * 2); // Ensure a minimum margin
 
     // Source mappings may lie outside of the source code. This happens both
     // when the source code is missing or when the source mappings are buggy.
@@ -1988,7 +1992,7 @@ const splitPct = 0.55; // vertical split percentage.
         c.fillRect(x + margin - 1, y, 1, height);
         c.textAlign = 'right';
         c.fillStyle = textColor;
-        c.font = '11px monospace';
+        c.font = lineNumberFont;
         for (let i = firstLineIndex, n = wrappedRows.length; i <= lastLineIndex; i++) {
           const row = i < n ? wrappedRows[i] : wrappedRows[n - 1] + (i - (n - 1));
           if (row > lastRow) break;

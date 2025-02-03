@@ -589,7 +589,7 @@ export let createTreemap = (sourceMapData: SourceMapData, splitPct: number): HTM
   let changeHoveredNode = (node: TreeNode | null): void => {
     if (hoveredNode !== node) {
       hoveredNode = node
-      canvas.style.cursor = node && !node.sortedChildren_.length ? 'pointer' : 'auto'
+      canvas.style.cursor = node ? node.sortedChildren_.length ? 'zoom-in' : 'pointer' : 'auto';
       invalidate()
       if (node && !node.sortedChildren_.length) {
         onNodeSelection(sourceMapData, node)
@@ -702,32 +702,13 @@ declare global {
 const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): void => {
   const encoder = new TextEncoder();
   const byteLength = str => encoder.encode(str).length;
+  // note these are IEC 1024 sizes
   console.log(
-    'showwhyfile', { sourceMapData, node },
-    `Original size: ` + bytesToText(byteLength(node.source.content)),
-    'Bundled size: ' + bytesToText(node.source.mappedByteTotal)
+    'reveal', { sourceMapData, node },
+    `Original: ` + bytesToText(byteLength(node.source.content)),
+    'Bundled: ' + bytesToText(node.source.mappedByteTotal)
   );
-
-  const kilo = byteLength(node.source.content) / 1000;
-  const kiloBund = node.source.mappedByteTotal / 1000;
-
-  const kibi = byteLength(node.source.content) / 1024;
-  const kibiBund = node.source.mappedByteTotal / 1024;
-  const formatter = new Intl.NumberFormat(undefined, {
-    style: 'unit',
-    unit: 'kilobyte',
-    unitDisplay: 'narrow',
-  });
-  console.log('Original size: ' + formatter.format(kilo));
-  console.log('Bundled size: ' + formatter.format(kiloBund));
-  console.log('Original size: ' + formatter.format(kibi), 'KiB');
-  console.log('Bundled size: ' + formatter.format(kibiBund), 'KiB');
-
-
 
   window.fileList.value = node.inputPath_;
   window.fileList.reveal();
-  // const evt = new Event('change');
-  // window.fileList.dispatchEvent(evt);
-
 }
