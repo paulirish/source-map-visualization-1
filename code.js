@@ -919,7 +919,7 @@ const splitPct = 0.55; // vertical split percentage.
   const monospaceFont = '12px monospace';
   const rowHeight = 21;
   const splitterWidth = 6;
-  const margin = 64;
+  let margin = 64; // Initial value, will be recalculated
   let isInvalid = true;
 
   let originalTextArea;
@@ -1142,6 +1142,12 @@ const splitPct = 0.55; // vertical split percentage.
     let lastLineIndex = lines.length - 1;
     let scrollX = 0;
     let scrollY = 0;
+
+    // Calculate margin based on the widest line number
+    c.font = '11px monospace'; // Use the same font as line numbers
+    const maxLineNumber = text.split(/\r\n|\r|\n/g).length;
+    const lineNumberWidth = c.measureText(maxLineNumber.toString()).width;
+    margin = Math.max(32, Math.ceil(lineNumberWidth) + textPaddingX * 2); // Ensure a minimum margin
 
     // Source mappings may lie outside of the source code. This happens both
     // when the source code is missing or when the source mappings are buggy.
@@ -1944,7 +1950,7 @@ const splitPct = 0.55; // vertical split percentage.
 
         // Draw the margin shadow
         if (scrollX > 0) {
-          let gradient = c.createLinearGradient(x + margin, 0, x + margin + shadowWidth, 0);
+          let gradient = c.createLinearGradient(x + margin, 0, x + shadowWidth + margin, 0);
           for (let i = 0; i <= 10; i++) {
             let t = i / 10;
             gradient.addColorStop(t, `rgba(0, 0, 0, ${(1 - t) * (1 - t) * 0.2})`);
