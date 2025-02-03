@@ -697,8 +697,6 @@ declare global {
 }
 
 const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): void => {
-
-  
   const encoder = new TextEncoder();
   const byteLength = str => encoder.encode(str).length;
   console.log(
