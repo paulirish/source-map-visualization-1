@@ -682,7 +682,7 @@ import { createTreemap } from "./out/treemap.js";
     if (sm.sources.length > 0) {
       const updateOriginalSource = (sourceIndex, progress) => {
         const source = sm.sources[sourceIndex];
-        return createTextArea({
+        const textArea = createTextArea({
           sourceIndex,
           text: source.content,
           progress,
@@ -699,6 +699,35 @@ import { createTreemap } from "./out/treemap.js";
             };
           },
         });
+
+        // Trigger hover on the first mapping of the updated source
+        if (source.data.length > 0) {
+          const firstMapping = source.data;
+          const generatedLine = firstMapping[0];
+          const generatedColumn = firstMapping[1];
+          const originalSource = firstMapping[2];
+          const originalLine = firstMapping[3];
+          const originalColumn = firstMapping[4];
+          const originalName = firstMapping[5];
+
+          hover = {
+            sourceIndex: sourceIndex, // Use the sourceIndex from the function parameter
+            lineIndex: originalLine,
+            row: 0, // Row doesn't matter for hover logic, will be recalculated in draw()
+            column: originalColumn,
+            index: -1, // Index will be calculated in analyzeLine
+            mapping: {
+              generatedLine: generatedLine,
+              generatedColumn: generatedColumn,
+              originalSource: originalSource,
+              originalLine: originalLine,
+              originalColumn: originalColumn,
+              originalName: originalName,
+            },
+          };
+          isInvalid = true;
+        }
+        return textArea;
       };
       fileList.onchange = async () => {
         originalTextArea = await updateOriginalSource(fileList.selectedIndex);
