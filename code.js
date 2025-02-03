@@ -731,6 +731,7 @@ import { createTreemap } from "./out/treemap.js";
       };
       fileList.onchange = async () => {
         originalTextArea = await updateOriginalSource(fileList.selectedIndex);
+        originalTextArea.scrollTo(hover.mapping.originalColumn, hover.mapping.originalLine);
         isInvalid = true;
       };
       finalOriginalTextArea = await updateOriginalSource(0, progress);
