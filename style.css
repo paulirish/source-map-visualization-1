@@ -65,6 +65,10 @@ canvas {
 }
 
 #statusBar {
+  cursor: row-resize;
+}
+
+#statusBar {
   --height: 22px;
   display: none;
   position: fixed;
