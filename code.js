@@ -1,5 +1,4 @@
 import { createTreemap } from "./out/treemap.js";
-const splitPct = 0.55; // vertical split percentage.
 
 (() => {
 
@@ -634,9 +633,9 @@ const splitPct = 0.55; // vertical split percentage.
     // Update styles based on new split percentage
     statusBar.style.bottom = `${(1 - splitPct) * 100}%`;
     progressBarOverlay.style.top = `calc(${splitPct * 100}% - 6px * 2)`;
-    canvas.style.top = innerHeight * splitPct + 'px'; // Adjust canvas position
 
-    isInvalid = true; // Trigger redraw
+    onresize(); // trigger redraw
+    window.treemapVis?.resize(); // and redraw the treemap too.
   });
 
   document.addEventListener('mouseup', () => {
@@ -884,7 +883,7 @@ const splitPct = 0.55; // vertical split percentage.
     // Treemap visualization integration
     if (globalThis.sm) {
       chartPanel.innerHTML = ''; // Clear existing chart
-      const treemapVis = createTreemap(globalThis.sm, splitPct); // Call createTreemap with source map data
+      const treemapVis = createTreemap(globalThis.sm, () => splitPct); // Call createTreemap with source map data
       treemapVis.id = 'treemapVis';
       chartPanel.appendChild(treemapVis); // Add treemap to chart panel
     } else {
@@ -2039,7 +2038,7 @@ const splitPct = 0.55; // vertical split percentage.
     if (!isInvalid) return;
     isInvalid = false;
 
-    c.clearRect(0, 0, innerWidth, innerHeight * splitPct);
+    c.clearRect(0, 0, innerWidth, innerHeight);
     if (!generatedTextArea) return;
 
     const bodyStyle = getComputedStyle(document.body);
@@ -2145,7 +2144,6 @@ const splitPct = 0.55; // vertical split percentage.
     let ratio = devicePixelRatio;
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
-    canvas.style.top = innerHeight * splitPct + 'px'; // Ensure canvas top is updated on resize as well
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     c.scale(ratio, ratio);

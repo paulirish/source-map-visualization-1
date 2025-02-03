@@ -223,7 +223,7 @@ let layoutTreemap = (sortedChildren: TreeNode[], x: number, y: number, w: number
   return children
 }
 
-export let createTreemap = (sourceMapData: SourceMapData, splitPct: number): HTMLDivElement => {
+export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => number): HTMLDivElement => {
   let tree = analyzeSourceMapTree(sourceMapData)
   updateColorMapping(tree, colorMode); // Call updateColorMapping here
   let layoutNodes: NodeLayout[] = []
@@ -281,10 +281,10 @@ export let createTreemap = (sourceMapData: SourceMapData, splitPct: number): HTM
     let oldHeight = height
     let ratio = window.devicePixelRatio || 1
     width = innerWidth // Math.min(mainEl.clientWidth, 1600)
-    height = innerHeight * (1 - splitPct); // Math.max(Math.round(width / 2), innerHeight - 200)
+    height = innerHeight * (1 - getSplitPct()); // Math.max(Math.round(width / 2), innerHeight - 200)
     canvas.style.width = width + 'px'
     canvas.style.height = height + 'px'
-    canvas.style.top = innerHeight * splitPct + 'px'
+    canvas.style.top = innerHeight * getSplitPct() + 'px'
 
     canvas.width = Math.round(width * ratio)
     canvas.height = Math.round(height * ratio)
@@ -687,6 +687,9 @@ export let createTreemap = (sourceMapData: SourceMapData, splitPct: number): HTM
         draw();
       }
   };
+
+  // @ts-expect-error Gross hack, you're welcome.
+  componentEl.resize = resize;
 
   return componentEl
 }
