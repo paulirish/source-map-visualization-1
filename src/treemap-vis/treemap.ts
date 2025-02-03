@@ -591,6 +591,9 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
       hoveredNode = node
       canvas.style.cursor = node && !node.sortedChildren_.length ? 'pointer' : 'auto'
       invalidate()
+      if (node && !node.sortedChildren_.length) {
+        onNodeSelection(sourceMapData, node)
+      }
     }
   }
 
