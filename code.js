@@ -885,7 +885,7 @@ import { createTreemap } from "./out/treemap.js";
       chartPanel.innerHTML = ''; // Clear existing chart
       const treemapVis = createTreemap(globalThis.sm, () => splitPct); // Call createTreemap with source map data
       treemapVis.id = 'treemapVis';
-      treemapVis.onNodeSelection = (backgroundColor: string) => {
+      treemapVis.onNodeSelection = (backgroundColor) => {
         if (fileList) {
           fileList.style.backgroundColor = backgroundColor || ''; // Set background color, clear if undefined
         }

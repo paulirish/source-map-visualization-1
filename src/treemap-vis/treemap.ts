@@ -595,9 +595,7 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
       if (node && !node.sortedChildren_.length) {
         backgroundColor = onNodeSelection(sourceMapData, node) as string; // Expecting string return
       }
-      if (this.onNodeSelection) {
-        this.onNodeSelection(backgroundColor); // Call the callback with the background color
-      }
+      componentEl?.onNodeSelection(backgroundColor); // Call the callback with the background color
     }
   }
 
