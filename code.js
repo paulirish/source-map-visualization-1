@@ -1,4 +1,5 @@
 import { createTreemap } from "./out/treemap.js";
+const splitPct = 0.55; // vertical split percentage.
 
 (() => {
 
@@ -72,6 +73,7 @@ import { createTreemap } from "./out/treemap.js";
   const originalStatus = document.getElementById('originalStatus');
   const generatedStatus = document.getElementById('generatedStatus');
   const chartPanel = document.getElementById('chartPanel'); // Get chart panel
+  statusBar.style.bottom = `${(1 - splitPct) * 100}%`;
 
   function isProbablySourceMap(file) {
     return file.name.endsWith('.map') || file.name.endsWith('.json');
@@ -607,8 +609,8 @@ import { createTreemap } from "./out/treemap.js";
     return { sources, names, data, file: json.file ?? 'bundle' };
   }
 
-  const toolbarHeight = 32;
-  const statusBarHeight = 32;
+  const toolbarHeight = toolbar.offsetHeight || 32;
+  const statusBarHeight = parseFloat(getComputedStyle(statusBar).getPropertyValue('--height')) || 32;
 
   function waitForDOM() {
     return new Promise(r => setTimeout(r, 1));
@@ -695,7 +697,7 @@ import { createTreemap } from "./out/treemap.js";
               x: 0,
               y: toolbarHeight,
               width: (innerWidth >>> 1) - (splitterWidth >> 1),
-              height: innerHeight * .4 - toolbarHeight - statusBarHeight,
+              height: innerHeight * splitPct - toolbarHeight - statusBarHeight,
             };
           },
         });
@@ -736,8 +738,10 @@ import { createTreemap } from "./out/treemap.js";
 
       fileList.reveal = async () => {
         originalTextArea = await updateOriginalSource(fileList.selectedIndex);
-        originalTextArea.scrollTo(hover.mapping.originalColumn, hover.mapping.originalLine);
-        generatedTextArea.scrollTo(hover.mapping.generatedColumn, hover.mapping.generatedLine);
+        if (hover?.mapping) {
+          originalTextArea.scrollTo(hover.mapping.originalColumn, hover.mapping.originalLine);
+          generatedTextArea.scrollTo(hover.mapping.generatedColumn, hover.mapping.generatedLine);
+        }
       };
       finalOriginalTextArea = await updateOriginalSource(0, progress);
     }
@@ -756,7 +760,7 @@ import { createTreemap } from "./out/treemap.js";
           x,
           y: toolbarHeight,
           width: innerWidth - x,
-          height: innerHeight * 0.4 - toolbarHeight - statusBarHeight,
+          height: innerHeight * splitPct - toolbarHeight - statusBarHeight,
         };
       },
     });
@@ -849,11 +853,10 @@ import { createTreemap } from "./out/treemap.js";
     console.log(`Finished loading in ${endTime - startTime}ms`);
 
 
-
     // Treemap visualization integration
     if (globalThis.sm) {
       chartPanel.innerHTML = ''; // Clear existing chart
-      const treemapVis = createTreemap(globalThis.sm); // Call createTreemap with source map data
+      const treemapVis = createTreemap(globalThis.sm, splitPct); // Call createTreemap with source map data
       treemapVis.id = 'treemapVis';
       chartPanel.appendChild(treemapVis); // Add treemap to chart panel
     } else {
@@ -2001,7 +2004,7 @@ import { createTreemap } from "./out/treemap.js";
     if (!isInvalid) return;
     isInvalid = false;
 
-    c.clearRect(0, 0, innerWidth, innerHeight * 0.4);
+    c.clearRect(0, 0, innerWidth, innerHeight * splitPct);
     if (!generatedTextArea) return;
 
     const bodyStyle = getComputedStyle(document.body);
@@ -2010,7 +2013,7 @@ import { createTreemap } from "./out/treemap.js";
 
     // Draw the splitter
     c.fillStyle = 'rgba(127, 127, 127, 0.2)';
-    c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight * 0.4 - toolbarHeight - statusBarHeight);
+    c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight * splitPct - toolbarHeight - statusBarHeight);
 
     if (hover?.mapping) {
       window.treemapVis?.highlightNode(hover, hover.mapping.originalSource)
@@ -2037,7 +2040,7 @@ import { createTreemap } from "./out/treemap.js";
 
         c.save();
         c.beginPath();
-        c.rect(0, toolbarHeight, innerWidth, innerHeight * 0.4 - toolbarHeight - statusBarHeight);
+        c.rect(0, toolbarHeight, innerWidth, innerHeight * splitPct - toolbarHeight - statusBarHeight);
         c.clip();
 
         // Draw the curve
@@ -2103,7 +2106,7 @@ import { createTreemap } from "./out/treemap.js";
 
   onresize = () => {
     let width = innerWidth;
-    let height = innerHeight * .4;
+    let height = innerHeight * splitPct;
     let ratio = devicePixelRatio;
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
