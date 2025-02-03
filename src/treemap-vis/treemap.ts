@@ -591,11 +591,18 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
       hoveredNode = node
       canvas.style.cursor = node ? node.sortedChildren_.length ? 'zoom-in' : 'pointer' : 'auto';
       invalidate()
+      let backgroundColor;
       if (node && !node.sortedChildren_.length) {
-        onNodeSelection(sourceMapData, node)
+        backgroundColor = onNodeSelection(sourceMapData, node) as string; // Expecting string return
+      }
+      if (this.onNodeSelection) {
+        this.onNodeSelection(backgroundColor); // Call the callback with the background color
       }
     }
   }
+
+  // @ts-expect-error Property 'onNodeSelection' does not exist on type 'HTMLDivElement'.
+  componentEl.onNodeSelection = null; // Callback for node selection
 
   let searchFor = (children: NodeLayout[], node: TreeNode): NodeLayout | null => {
     for (let child of children) {
@@ -702,7 +709,7 @@ declare global {
   }
 }
 
-const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): void => {
+const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): string | void => {
   const encoder = new TextEncoder();
   const byteLength = str => encoder.encode(str).length;
   // note these are IEC 1024 sizes
@@ -714,4 +721,6 @@ const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): void => 
 
   window.fileList.value = node.inputPath_;
   window.fileList.reveal();
+
+  return cssBackgroundForInputPath(node.inputPath_);
 }
