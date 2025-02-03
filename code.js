@@ -1978,7 +1978,7 @@ import { createTreemap } from "./out/treemap.js";
     c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight * 0.4 - toolbarHeight - statusBarHeight);
 
     if (hover?.mapping) {
-      window.treemapVis.highlightNode(hover, hover.mapping.originalSource)
+      window.treemapVis?.highlightNode(hover, hover.mapping.originalSource)
     }
 
     // Draw the arrow between the two hover areas

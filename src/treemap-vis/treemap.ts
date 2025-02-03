@@ -466,8 +466,6 @@ export let createTreemap = (sourceMapData: SourceMapData): HTMLDivElement => {
     }
   }
 
-  let highlightTreemapNode: TreeNode | null = null;
-
   let draw = (): void => {
     let bodyStyle = getComputedStyle(document.body)
     bgColor = bodyStyle.getPropertyValue('--bg')
