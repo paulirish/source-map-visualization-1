@@ -705,34 +705,6 @@ import { createTreemap } from "./out/treemap.js";
         isInvalid = true;
       };
       finalOriginalTextArea = await updateOriginalSource(0, progress);
-
-      // Trigger hover on the first mapping of the first source
-      if (sm.sources.length > 0 && sm.sources[0].data.length > 0 && finalOriginalTextArea) {
-        const firstMapping = sm.sources[0].data;
-        const generatedLine = firstMapping[0];
-        const generatedColumn = firstMapping[1];
-        const originalSource = firstMapping[2];
-        const originalLine = firstMapping[3];
-        const originalColumn = firstMapping[4];
-        const originalName = firstMapping[5];
-
-        hover = {
-          sourceIndex: 0,
-          lineIndex: originalLine,
-          row: 0, // Row doesn't matter for hover logic, will be recalculated in draw()
-          column: originalColumn,
-          index: -1, // Index will be calculated in analyzeLine
-          mapping: {
-            generatedLine: generatedLine,
-            generatedColumn: generatedColumn,
-            originalSource: originalSource,
-            originalLine: originalLine,
-            originalColumn: originalColumn,
-            originalName: originalName,
-          },
-        };
-        isInvalid = true;
-      }
     }
 
     generatedTextArea = await createTextArea({
