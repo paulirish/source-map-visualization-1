@@ -589,7 +589,7 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
   let changeHoveredNode = (node: TreeNode | null): void => {
     if (hoveredNode !== node) {
       hoveredNode = node
-      canvas.style.cursor = node ? node.sortedChildren_.length ? 'zoom-in' : 'pointer' : 'auto';
+      canvas.style.cursor = node ? node.sortedChildren_.length ? currentLayout?.node_ === node ? 'auto' : 'zoom-in' : 'pointer' : 'auto';
       invalidate()
       let backgroundColor;
       if (node && !node.sortedChildren_.length) {
@@ -636,7 +636,7 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
     if (layout) {
       let node = layout.node_
       if (!node.sortedChildren_.length) {
-        onNodeSelection(sourceMapData, node) 
+        onNodeSelection(sourceMapData, node)
         updateHover(e)
       } else if (layout !== currentLayout) {
         changeCurrentNode(layout)
@@ -673,24 +673,24 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
 
   // @ts-expect-error Gross hack, you're welcome.
   componentEl.highlightNode = (hover: any, sourceIndex: any) => {
-      const originalSource = sourceMapData.sources[sourceIndex];
-      if (originalSource) {
-        const inputPath = originalSource.name;
-        const findNodeByInputPath = (nodes: NodeLayout[], targetInputPath: string): TreeNode | null => {
-          for (const n of nodes) {
-            if (n.node_.inputPath_ === targetInputPath) {
-              return n.node_;
-            }
-            const foundInChildren = findNodeByInputPath(n.children_, targetInputPath);
-            if (foundInChildren) {
-              return foundInChildren;
-            }
+    const originalSource = sourceMapData.sources[sourceIndex];
+    if (originalSource) {
+      const inputPath = originalSource.name;
+      const findNodeByInputPath = (nodes: NodeLayout[], targetInputPath: string): TreeNode | null => {
+        for (const n of nodes) {
+          if (n.node_.inputPath_ === targetInputPath) {
+            return n.node_;
           }
-          return null;
-        };
-        hoveredNode =  findNodeByInputPath(layoutNodes, inputPath);
-        draw();
-      }
+          const foundInChildren = findNodeByInputPath(n.children_, targetInputPath);
+          if (foundInChildren) {
+            return foundInChildren;
+          }
+        }
+        return null;
+      };
+      hoveredNode = findNodeByInputPath(layoutNodes, inputPath);
+      draw();
+    }
   };
 
   // @ts-expect-error Gross hack, you're welcome.
@@ -710,12 +710,12 @@ declare global {
 const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): string | void => {
   const encoder = new TextEncoder();
   const byteLength = str => encoder.encode(str).length;
-  // note these are IEC 1024 sizes
-  console.log(
-    'reveal', { sourceMapData, node },
-    `Original: ` + bytesToText(byteLength(node.source.content)),
-    'Bundled: ' + bytesToText(node.source.mappedByteTotal)
-  );
+  // NEVERMIND. changed them! muahaha. note these are IEC 1024 sizes 
+  // console.log(
+  //   'reveal', { sourceMapData, node },
+  //   `Original: ` + bytesToText(byteLength(node.source.content)),
+  //   'Bundled: ' + bytesToText(node.source.mappedByteTotal)
+  // );
 
   window.fileList.value = node.inputPath_;
   window.fileList.reveal();

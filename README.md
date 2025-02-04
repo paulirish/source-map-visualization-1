@@ -10,7 +10,6 @@ This is a visualization of JavaScript/CSS source map data, which is useful for d
 
 ### todo
 
-- maybe use 1000 kb instead of 1024
 - split eol bytes out from unmapped ones.
 - highlight ranges in text editor when hovering treemap node.
 - align the bg colors used in both.

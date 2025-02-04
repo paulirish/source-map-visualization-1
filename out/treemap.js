@@ -19,10 +19,10 @@ var formatNumberWithDecimal = (value) => {
 };
 var bytesToText = (bytes) => {
   if (bytes === 1) return "1 byte";
-  if (bytes < 1024) return formatInteger(bytes) + " bytes";
-  if (bytes < 1024 * 1024) return formatNumberWithDecimal(bytes / 1024) + " kb";
-  if (bytes < 1024 * 1024 * 1024) return formatNumberWithDecimal(bytes / (1024 * 1024)) + " mb";
-  return formatNumberWithDecimal(bytes / (1024 * 1024 * 1024)) + " gb";
+  if (bytes < 1e3) return formatInteger(bytes) + " bytes";
+  if (bytes < 1e3 * 1e3) return formatNumberWithDecimal(bytes / 1e3) + " kB";
+  if (bytes < 1e3 * 1e3 * 1e3) return formatNumberWithDecimal(bytes / (1e3 * 1e3)) + " MB";
+  return formatNumberWithDecimal(bytes / (1e3 * 1e3 * 1e3)) + " GB";
 };
 var textToHTML = (text) => {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -695,7 +695,7 @@ var createTreemap = (sourceMapData, getSplitPct) => {
   let changeHoveredNode = (node) => {
     if (hoveredNode !== node) {
       hoveredNode = node;
-      canvas.style.cursor = node ? node.sortedChildren_.length ? "zoom-in" : "pointer" : "auto";
+      canvas.style.cursor = node ? node.sortedChildren_.length ? currentLayout?.node_ === node ? "auto" : "zoom-in" : "pointer" : "auto";
       invalidate();
       let backgroundColor;
       if (node && !node.sortedChildren_.length) {
@@ -790,12 +790,6 @@ var createTreemap = (sourceMapData, getSplitPct) => {
 var onNodeSelection = (sourceMapData, node) => {
   const encoder = new TextEncoder();
   const byteLength = (str) => encoder.encode(str).length;
-  console.log(
-    "reveal",
-    { sourceMapData, node },
-    `Original: ` + bytesToText(byteLength(node.source.content)),
-    "Bundled: " + bytesToText(node.source.mappedByteTotal)
-  );
   window.fileList.value = node.inputPath_;
   window.fileList.reveal();
   return cssBackgroundForInputPath(node.inputPath_);

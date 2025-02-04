@@ -49,11 +49,12 @@ export let formatNumberWithDecimal = (value: number): string => {
 }
 
 export let bytesToText = (bytes: number): string => {
+  // FYI: evan's original (and esbuild) use 1024-based units, but nearly all other tools/OS's use SI byte units. 
   if (bytes === 1) return '1 byte'
-  if (bytes < 1024) return formatInteger(bytes) + ' bytes'
-  if (bytes < 1024 * 1024) return formatNumberWithDecimal(bytes / 1024) + ' kb'
-  if (bytes < 1024 * 1024 * 1024) return formatNumberWithDecimal(bytes / (1024 * 1024)) + ' mb'
-  return formatNumberWithDecimal(bytes / (1024 * 1024 * 1024)) + ' gb'
+  if (bytes < 1000) return formatInteger(bytes) + ' bytes'
+  if (bytes < 1000 * 1000) return formatNumberWithDecimal(bytes / 1000) + ' kB'
+  if (bytes < 1000 * 1000 * 1000) return formatNumberWithDecimal(bytes / (1000 * 1000)) + ' MB'
+  return formatNumberWithDecimal(bytes / (1000 * 1000 * 1000)) + ' GB'
 }
 
 export let textToHTML = (text: string): string => {
