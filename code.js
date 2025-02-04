@@ -10,6 +10,7 @@ import { createTreemap } from "./out/treemap.js";
   const dragTarget = document.getElementById('dragTarget');
   const uploadFiles = document.getElementById('uploadFiles');
   const loadExample = document.getElementById('loadExample');
+  const loadComplexExample = document.getElementById('loadComplexExample');
 
   let dragging = 0;
   let filesInput;
@@ -55,6 +56,14 @@ import { createTreemap } from "./out/treemap.js";
 
   loadExample.onclick = () => {
     finishLoading(exampleJS, exampleMap);
+  };
+
+  // preload :)
+  loadComplexExample.onpointerover = () => fetchComplexBundle();
+
+  loadComplexExample.onclick = async () => {
+    const [code, map] = await fetchComplexBundle();
+    finishLoading(code, map);
   };
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -2273,6 +2282,7 @@ import { createTreemap } from "./out/treemap.js";
   addEventListener('popstate', () => loadFromHash());
 })();
 
+
 const exampleJS = `// index.tsx
 import { h as u, Fragment as l, render as c } from "preact";
 
@@ -2328,6 +2338,19 @@ const exampleMap = `{
   "names": ["h", "Fragment", "render", "h", "Component", "useState", "CounterClass", "props", "increment_", "value_", "decrement_", "initialValue_", "CounterFunction", "value", "setValue", "label_", "render", "h", "Fragment", "CounterClass", "label_", "initialValue_", "CounterFunction"]
 }
 `;
+
+let complexBundleP = null;
+/** @returns {Promise<string[]>} */
+async function fetchComplexBundle() {
+  if (complexBundleP) {
+    return complexBundleP;
+  }
+  complexBundleP = Promise.all([
+    fetch('lh-big.js').then(r => r.text()),
+    fetch('lh-big.js.map').then(r => r.text())
+  ]);
+  return complexBundleP;
+}
 
 
 /**

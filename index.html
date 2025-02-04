@@ -18,17 +18,23 @@
   <div id="dragTarget"></div>
   <div id="promptText">
     <section>
-      <h1>Source Map Visualization</h1>
+      <h1><em>Sources+Tree</em> Source Map Visualization</h1>
       <p>This is a visualization of JavaScript/<wbr>CSS source map data, which is useful for debugging problems with
-        generated source maps. It's designed to be high-performance so it doesn't fall over with huge source maps. <a
-          href="https://github.com/evanw/source-map-visualization">Find the sources on GitHub</a></p>
+        generated source maps. It's designed to be high-performance so it doesn't fall over with huge source maps. 
+      <p>It includes a treemap that shows how many bytes of the generated bundle map back to each original source file.</p>
       <p>Drag and drop some files here or <button id="uploadFiles">Upload files</button> to get started. You can either
         drop a single JavaScript/<wbr>CSS file with an inline source map comment, or a JavaScript/<wbr>CSS file and a separate
         source map file together.</p>
-      <p>Or you can <button id="loadExample">Load an example</button> to play around with the visualization.</p>
+      <p>Or you can <button id="loadExample">Load a basic example</button> or <button id="loadComplexExample">Load a complex example</button> to play around with the visualization.</p>
+
       <div id="errorText"></div>
       <noscript>This app requires JavaScript to work. Please enable JavaScript and reload the page.</noscript>
+
+      <footer>
+        This app mostly Evan Wallace's work (<a href="https://github.com/evanw/source-map-visualization">viz</a> + <a href="https://github.com/esbuild/esbuild.github.io/tree/main/src/analyze">esbuild treemap</a>, but I (Paul) taught the treemap to consume sourcemap data (rather than esbuild metafiles), and calculated mapped byte totals.)
+      </footer>
     </section>
+    
   </div>
 
   <div id="toolbar">

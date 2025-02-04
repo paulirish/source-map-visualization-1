@@ -198,6 +198,10 @@ noscript:before {
   will-change: transform;
 }
 
+footer {
+  font-size: 90%;
+}
+
 /* ---------- Light colors ---------- */
 
 body:not([data-theme=dark]) {
@@ -244,6 +248,12 @@ body[data-theme=dark] #progressBar .progress {
     fill: #eee;
     stroke: #eee;
     background: #333;
+  }
+  a:link {
+    color: #ccc;
+  }
+  a:link:hover {
+    color: #fff;
   }
 
   body:not([data-theme=light]) #theme-light {
