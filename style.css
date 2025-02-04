@@ -249,10 +249,11 @@ body[data-theme=dark] #progressBar .progress {
     stroke: #eee;
     background: #333;
   }
-  a:link {
+  
+  a {
     color: #ccc;
   }
-  a:link:hover {
+  a:hover {
     color: #fff;
   }
 
