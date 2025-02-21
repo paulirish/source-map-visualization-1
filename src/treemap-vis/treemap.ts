@@ -383,6 +383,13 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
     return flags
   }
 
+  const darkenHSL = (hsl, pct = 0.5) => {
+    const [h, s, l] = hsl.match(/[\d.]+/g).map(Number);
+    const newS = Math.max(0, Math.min(100, s * (1 - pct)));
+    const newL = Math.max(0, Math.min(100, l * (1 - pct)));
+    return `hsl(${h}, ${newS}%, ${newL}%)`;
+  };
+
   let drawNodeForeground = (layout: NodeLayout, inCurrentNode: boolean): void => {
     let node = layout.node_
     let [x, y, w, h] = layout.box_
@@ -395,8 +402,12 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
     }
 
     if (!isOutputFile) {
+      // TODO: we just ran this in drawNodeBackground. eh.
+      const bgColor = canvasFillStyleForInputPath(c, node.inputPath_, bgOriginX, bgOriginY, 1)
+      const strokeColor = darkenHSL(bgColor);
+      // console.log(bgColor, strokeColor);
       // Note: The stroke deliberately overlaps the right and bottom edges
-      strokeRectWithFirefoxBugWorkaround(c, '#222', x + 0.5, y + 0.5, w, h)
+      strokeRectWithFirefoxBugWorkaround(c, strokeColor, x + 0.5, y + 0.5, w, h)
     }
 
     if (h >= CONSTANTS.HEADER_HEIGHT) {
@@ -594,12 +605,12 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
       if (node && !node.sortedChildren_.length) {
         backgroundColor = onNodeSelection(sourceMapData, node) as string; // Expecting string return
       }
-      componentEl?.onNodeSelection(backgroundColor); // Call the callback with the background color
+      componentEl?.onTreeNodeHovered(backgroundColor); // Call the callback with the background color
     }
   }
 
-  // @ts-expect-error Property 'onNodeSelection' does not exist on type 'HTMLDivElement'.
-  componentEl.onNodeSelection = null; // Callback for node selection
+  // @ts-expect-error Property 'onTreeNodeHovered' does not exist on type 'HTMLDivElement'.
+  componentEl.onTreeNodeHovered = null; // Callback for node selection
 
   let searchFor = (children: NodeLayout[], node: TreeNode): NodeLayout | null => {
     for (let child of children) {

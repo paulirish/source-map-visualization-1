@@ -539,6 +539,12 @@ var createTreemap = (sourceMapData, getSplitPct) => {
     }
     return flags;
   };
+  const darkenHSL = (hsl, pct = 0.5) => {
+    const [h, s, l] = hsl.match(/[\d.]+/g).map(Number);
+    const newS = Math.max(0, Math.min(100, s * (1 - pct)));
+    const newL = Math.max(0, Math.min(100, l * (1 - pct)));
+    return `hsl(${h}, ${newS}%, ${newL}%)`;
+  };
   let drawNodeForeground = (layout, inCurrentNode) => {
     let node = layout.node_;
     let [x, y, w, h] = layout.box_;
@@ -548,7 +554,9 @@ var createTreemap = (sourceMapData, getSplitPct) => {
       c.fillRect(x, y, w, h);
     }
     if (!isOutputFile) {
-      strokeRectWithFirefoxBugWorkaround(c, "#222", x + 0.5, y + 0.5, w, h);
+      const bgColor2 = canvasFillStyleForInputPath(c, node.inputPath_, bgOriginX, bgOriginY, 1);
+      const strokeColor = darkenHSL(bgColor2);
+      strokeRectWithFirefoxBugWorkaround(c, strokeColor, x + 0.5, y + 0.5, w, h);
     }
     if (h >= 20 /* HEADER_HEIGHT */) {
       c.fillStyle = isOutputFile ? fgOnColor : "#000";
@@ -700,10 +708,10 @@ var createTreemap = (sourceMapData, getSplitPct) => {
       if (node && !node.sortedChildren_.length) {
         backgroundColor = onNodeSelection(sourceMapData, node);
       }
-      componentEl?.onNodeSelection(backgroundColor);
+      componentEl?.onTreeNodeHovered(backgroundColor);
     }
   };
-  componentEl.onNodeSelection = null;
+  componentEl.onTreeNodeHovered = null;
   let searchFor = (children, node) => {
     for (let child of children) {
       let result = child.node_ === node ? child : searchFor(child.children_, node);

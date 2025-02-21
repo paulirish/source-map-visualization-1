@@ -761,7 +761,7 @@ import { createTreemap } from "./out/treemap.js";
             lineIndex: originalLine,
             row: 0, // Row doesn't matter for hover logic, will be recalculated in draw()
             column: originalColumn,
-            index: -1, // Index will be calculated in analyzeLine
+            index: 0, // Index will be calculated in analyzeLine
             mapping: {
               generatedLine: generatedLine,
               generatedColumn: generatedColumn,
@@ -777,6 +777,7 @@ import { createTreemap } from "./out/treemap.js";
           originalTextArea.scrollTo(hover.mapping.originalColumn, hover.mapping.originalLine);
           generatedTextArea.scrollTo(hover.mapping.generatedColumn, hover.mapping.generatedLine);
         }
+        // draw(); // this doesnt end up showing an arrow because of existing doubleraf. 
       };
       finalOriginalTextArea = await updateOriginalSource(0, progress);
     }
@@ -945,7 +946,7 @@ import { createTreemap } from "./out/treemap.js";
       chartPanel.innerHTML = ''; // Clear existing chart
       const treemapVis = createTreemap(globalThis.sm, () => splitPct); // Call createTreemap with source map data
       treemapVis.id = 'treemapVis';
-      treemapVis.onNodeSelection = (backgroundColor) => {
+      treemapVis.onTreeNodeHovered = (backgroundColor) => {
         if (fileList) {
           fileList.style.backgroundColor = backgroundColor || ''; // Set background color, clear if undefined
         }
