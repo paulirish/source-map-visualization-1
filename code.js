@@ -83,6 +83,9 @@ import { createTreemap } from "./out/treemap.js";
   const chartPanel = document.getElementById('chartPanel'); // Get chart panel
   let splitPct = 0.35; // vertical split percentage. How much size to give editor.
   progressBarOverlay.style.top = `calc(${splitPct * 100}% - 6px * 2)`;
+  const toolbarHeight = toolbar.offsetHeight || 24;
+  const statusBarHeight = parseFloat(getComputedStyle(statusBar).getPropertyValue('--height')) || 32;
+  let topOffset = 0;
 
 
   function isProbablySourceMap(file) {
@@ -619,8 +622,6 @@ import { createTreemap } from "./out/treemap.js";
     return { sources, names, data, file: json.file ?? 'bundle' };
   }
 
-  const toolbarHeight = toolbar.offsetHeight || 32;
-  const statusBarHeight = parseFloat(getComputedStyle(statusBar).getPropertyValue('--height')) || 32;
   let isToolbarDragging = false;
 
   function waitForDOM() {
@@ -628,6 +629,9 @@ import { createTreemap } from "./out/treemap.js";
   }
 
   toolbar.addEventListener('mousedown', e => {
+    // If clicking withing dropdown, we ain't dragging.
+    if (e.target.closest('#fileList')) return;
+
     isToolbarDragging = true;
     e.preventDefault(); // Prevent text selection during drag
   });
@@ -1533,7 +1537,7 @@ import { createTreemap } from "./out/treemap.js";
 
       onwheel(e) {
         let { x, y, width, height } = bounds();
-        if (e.pageX >= x && e.pageX < x + width && e.pageY >= y && e.pageY < y + height) {
+        if (e.pageX >= x && e.pageX < x + width && (e.pageY - topOffset) >= y && (e.pageY - topOffset) < y + height) {
           scrollX = Math.round(scrollX + e.deltaX);
           scrollY = Math.round(scrollY + e.deltaY);
           computeScrollbarsAndClampScroll();
@@ -1545,16 +1549,18 @@ import { createTreemap } from "./out/treemap.js";
       onmousemove(e) {
         const { x, y, width, height } = bounds();
 
+        const mouseY = e.pageY - topOffset;
+
         if (
           e.pageX >= x + margin && e.pageX < x + width - scrollbarThickness &&
-          e.pageY >= y && e.pageY < y + height
+          mouseY >= y && mouseY < y + height
         ) {
           const { columnWidth, columnsAcross, wrappedRows } = computeScrollbarsAndClampScroll();
           let fractionalColumn = (e.pageX - x - margin - textPaddingX + scrollX) / columnWidth;
           let roundedColumn = Math.round(fractionalColumn);
 
           if (roundedColumn >= 0) {
-            const row = Math.floor((e.pageY - y - textPaddingY + scrollY) / rowHeight);
+            const row = Math.floor((mouseY - y - textPaddingY + scrollY) / rowHeight);
 
             if (row >= 0) {
               // Adjust the mouse column due to line wrapping
@@ -1598,7 +1604,7 @@ import { createTreemap } from "./out/treemap.js";
       onmousedown(e) {
         const { x, y, width, height } = bounds();
         const px = e.pageX - x;
-        const py = e.pageY - y;
+        const py = e.pageY - topOffset - y;
         if (px < 0 || py < 0 || px >= width || py >= height) return;
         const { maxScrollX, maxScrollY, scrollbarX, scrollbarY } = computeScrollbarsAndClampScroll();
 
@@ -1614,7 +1620,7 @@ import { createTreemap } from "./out/treemap.js";
         } else if (scrollbarY && px > width - scrollbarThickness) {
           let originalScrollY = scrollY;
           mousemove = e => {
-            scrollY = Math.round(originalScrollY + (e.pageY - y - py) * maxScrollY / (scrollbarY.trackLength - scrollbarY.thumbLength));
+            scrollY = Math.round(originalScrollY + (e.pageY - topOffset - y - py) * maxScrollY / (scrollbarY.trackLength - scrollbarY.thumbLength));
             computeScrollbarsAndClampScroll();
             isInvalid = true;
           };
@@ -2158,7 +2164,8 @@ import { createTreemap } from "./out/treemap.js";
 
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
-    canvas.style.top = innerHeight * (1 - splitPct) + 'px'
+    topOffset = innerHeight * (1 - splitPct);
+    canvas.style.top = topOffset  + 'px';
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     c.scale(ratio, ratio);

@@ -28,12 +28,11 @@ canvas {
   left: 0;
   top: calc(55% - 0px);
   right: 0;
-  height: 32px;
-  line-height: 32px;
+  height: 24px;
+  line-height: 24px;
   background: rgba(127, 127, 127, 0.2);
   z-index: 1;
   border-bottom: 1px solid rgba(127, 127, 127, 0.5);
-
   cursor: row-resize;
 }
 
