@@ -81,7 +81,7 @@ import { createTreemap } from "./out/treemap.js";
   const originalStatus = document.getElementById('originalStatus');
   const generatedStatus = document.getElementById('generatedStatus');
   const chartPanel = document.getElementById('chartPanel'); // Get chart panel
-  let splitPct = 0.55; // vertical split percentage.
+  let splitPct = 0.45; // vertical split percentage. How much size to give editor (todo, flip visually and have this be the treemap size)
   statusBar.style.bottom = `${(1 - splitPct) * 100}%`;
   progressBarOverlay.style.top = `calc(${splitPct * 100}% - 6px * 2)`;
 
