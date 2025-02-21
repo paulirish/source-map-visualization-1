@@ -630,7 +630,7 @@ import { createTreemap } from "./out/treemap.js";
 
   toolbar.addEventListener('mousedown', e => {
     // If clicking withing dropdown, we ain't dragging.
-    if (e.target.closest('#fileList')) return;
+    if (e.target.closest('input, select')) return;
 
     isToolbarDragging = true;
     e.preventDefault(); // Prevent text selection during drag

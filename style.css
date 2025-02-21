@@ -199,9 +199,6 @@ noscript:before {
 footer {
   font-size: 90%;
 }
-#gotoLineParent {
-  vertical-align: middle;
-}
 
 #gotoLine {
   height: 19.5px;
