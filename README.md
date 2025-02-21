@@ -13,3 +13,4 @@ This is a visualization of JavaScript/CSS source map data, which is useful for d
 - split eol bytes out from unmapped ones.
 - highlight ranges in text editor when hovering treemap node.
 - align the bg colors used in both.
+- look into the multiple tick() calls per frame. seems wrong.
