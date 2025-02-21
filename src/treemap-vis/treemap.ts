@@ -284,7 +284,6 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
     height = innerHeight * (1 - getSplitPct()); // Math.max(Math.round(width / 2), innerHeight - 200)
     canvas.style.width = width + 'px'
     canvas.style.height = height + 'px'
-    canvas.style.top = innerHeight * getSplitPct() + 'px'
 
     canvas.width = Math.round(width * ratio)
     canvas.height = Math.round(height * ratio)

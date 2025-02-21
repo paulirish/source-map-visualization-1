@@ -81,8 +81,7 @@ import { createTreemap } from "./out/treemap.js";
   const originalStatus = document.getElementById('originalStatus');
   const generatedStatus = document.getElementById('generatedStatus');
   const chartPanel = document.getElementById('chartPanel'); // Get chart panel
-  let splitPct = 0.45; // vertical split percentage. How much size to give editor (todo, flip visually and have this be the treemap size)
-  statusBar.style.bottom = `${(1 - splitPct) * 100}%`;
+  let splitPct = 0.35; // vertical split percentage. How much size to give editor.
   progressBarOverlay.style.top = `calc(${splitPct * 100}% - 6px * 2)`;
 
 
@@ -622,33 +621,29 @@ import { createTreemap } from "./out/treemap.js";
 
   const toolbarHeight = toolbar.offsetHeight || 32;
   const statusBarHeight = parseFloat(getComputedStyle(statusBar).getPropertyValue('--height')) || 32;
-  let isStatusBarDragging = false;
+  let isToolbarDragging = false;
 
   function waitForDOM() {
     return new Promise(r => setTimeout(r, 1));
   }
 
-  statusBar.addEventListener('mousedown', e => {
-    isStatusBarDragging = true;
+  toolbar.addEventListener('mousedown', e => {
+    isToolbarDragging = true;
     e.preventDefault(); // Prevent text selection during drag
   });
 
   document.addEventListener('mousemove', e => {
-    if (!isStatusBarDragging) return;
+    if (!isToolbarDragging) return;
 
-    // Calculate new split percentage based on mouse position
-    splitPct = Math.max(0.1, Math.min(0.9, e.pageY / innerHeight)); // Clamp value between 0.1 and 0.9 for usability
-
-    // Update styles based on new split percentage
-    statusBar.style.bottom = `${(1 - splitPct) * 100}%`;
-    progressBarOverlay.style.top = `calc(${splitPct * 100}% - 6px * 2)`;
+    // Update to new splitPct based on mouse position
+    splitPct = 1 - Math.max(0.1, Math.min(0.9, (e.pageY - toolbarHeight/2) / innerHeight)); // Clamp value between 0.1 and 0.9 for usability
 
     onresize(); // trigger redraw
     window.treemapVis?.resize(); // and redraw the treemap too.
   });
 
   document.addEventListener('mouseup', () => {
-    isStatusBarDragging = false;
+    isToolbarDragging = false;
   });
 
   /**
@@ -2156,8 +2151,14 @@ import { createTreemap } from "./out/treemap.js";
     let width = innerWidth;
     let height = innerHeight * splitPct;
     let ratio = devicePixelRatio;
+
+    // Update styles based on new split percentage
+    progressBarOverlay.style.top = `calc(${(splitPct) * 100}% - 6px * 2)`;
+    toolbar.style.top = `calc(${(1 - splitPct) * 100}% )`;
+
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
+    canvas.style.top = innerHeight * (1 - splitPct) + 'px'
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     c.scale(ratio, ratio);

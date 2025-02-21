@@ -459,7 +459,6 @@ var createTreemap = (sourceMapData, getSplitPct) => {
     height = innerHeight * (1 - getSplitPct());
     canvas.style.width = width + "px";
     canvas.style.height = height + "px";
-    canvas.style.top = innerHeight * getSplitPct() + "px";
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     c.scale(ratio, ratio);
