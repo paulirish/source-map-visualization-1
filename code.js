@@ -850,13 +850,27 @@ import { createTreemap } from "./out/treemap.js";
         }
       }
 
+      // Account for bytes in //# sourceMappingUrl=......... 
+      const sourceMappingURLMatch = findSourceMappingURL(generatedTextArea.lineData.lines.map(l => l.raw));
+      if (sourceMappingURLMatch) {
+        const mappingUrl = {
+          name: '(sourceMappingURL)',
+          content: sourceMappingURLMatch[0],
+          mappedStrings: sourceMappingURLMatch[0],
+          data: new Int32Array(0),
+          dataLength: 0,
+          generatedRanges: [],
+        };
+        sm.sources.push(mappingUrl);
+      }
+
+
       // Text encoding is costly, so we only call it on a concat of all the strings.
       for (const source of sm.sources) {
         source.mappedByteTotal = byteLength(source.mappedStrings);
         unmappedByteTotal -= source.mappedByteTotal;
       }
-      // console.log(codeByRowsColumns.map(line => line.join('')).join('\n'));
-      // console.log('unmapped', unmappedByteTotal);
+      // Total up bytes remaining unmapped
       const unmapped = {
         mappedByteTotal: unmappedByteTotal,
         name: '(unmapped)',
@@ -2497,3 +2511,25 @@ async function fromBase64(encoded, options) {
   }
 }
 
+/**
+ * Finds the sourceMappingURL from an array of lines, searching backwards from the end.
+ * Follows https://tc39.es/ecma426/#sec-JavaScriptExtractSourceMapURL
+ *
+ * @param {string[]} lines An array of strings representing the lines of a file.
+ * @returns {string | null} The extracted source map URL, or null if not found.
+ */
+function findSourceMappingURL(lines) {
+  const urlRegex = /^\s*\/\/[@#]\s*sourceMappingURL=(\S+)/;
+  for (const line of lines.slice().reverse()) {
+    const match = line.match(urlRegex);
+    if (match) {
+      return match; // Return the captured URL string.
+    }
+    // Stop searching if we hit a line that is not a comment and not empty.
+    const trimmedLine = line.trim();
+    if (trimmedLine && !trimmedLine.startsWith('//') && !trimmedLine.startsWith('/*')) {
+      return null; 
+    }
+  }
+  return null; // Reached the beginning of the file without a match.
+}
