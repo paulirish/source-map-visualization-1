@@ -64,6 +64,18 @@ var splitPathBySlash = (path) => {
   }
   return parts;
 };
+var commonPrefixFinder = (path, commonPrefix) => {
+  if (path === "") return [];
+  let parts = splitPathBySlash(path);
+  if (!commonPrefix) return parts;
+  for (let i = 0; i <= parts.length; i++) {
+    if (commonPrefix[i] !== parts[i]) {
+      commonPrefix.length = i;
+      break;
+    }
+  }
+  return commonPrefix;
+};
 var lastInteractionWasKeyboard = false;
 var darkMode = matchMedia("(prefers-color-scheme: dark)");
 var darkModeDidChange = () => darkModeListener && darkModeListener();
@@ -246,7 +258,7 @@ var assignColorsByDirectory = (colorMapping2, node, startAngle, sweepAngle) => {
 };
 var cjsColor = hueAngleToColor(3.5);
 var esmColor = hueAngleToColor(1);
-var otherColor = "#CCC";
+var otherColor = "rgb(204 204 204)";
 var bothColor = [cjsColor, esmColor];
 var colorForFormats = (formats) => {
   if (!formats) return otherColor;
@@ -310,9 +322,8 @@ var analyzeSourceMapTree = (sourceMapData) => {
     for (let file in children) {
       sorted.push(sortChildren(children[file], false));
     }
-    let name = commonPrefix ? splitPathBySlash(node.name_).slice(commonPrefix.length).join("/") : node.name_;
     return {
-      name_: name,
+      name_: node.name_,
       source: node.source,
       inputPath_: node.inputPath_,
       sizeText_: bytesToText(node.bytesInOutput_),
@@ -321,8 +332,14 @@ var analyzeSourceMapTree = (sourceMapData) => {
       isOutputFile_: isOutputFile
     };
   };
+  for (let sm of sources.filter((sm2) => !sm2.name.startsWith("("))) {
+    let parts = splitPathBySlash(sm.name);
+    parts.pop();
+    commonPrefix = commonPrefixFinder(parts.join("/"), commonPrefix);
+  }
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     const source = sources[sourceIndex];
+    source.name = commonPrefix ? splitPathBySlash(source.name).slice(commonPrefix.length).join("/") : source.name;
     if (isSourceMapPath(source.name)) continue;
     let depth = accumulatePath(rootNode.children_[sourceMapData.file], source);
     if (depth > maxDepth) maxDepth = depth;

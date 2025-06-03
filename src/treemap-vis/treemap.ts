@@ -102,9 +102,9 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     for (let file in children) {
       sorted.push(sortChildren(children[file], false))
     }
-    let name = commonPrefix ? splitPathBySlash(node.name_).slice(commonPrefix.length).join('/') : node.name_
+    // let name = commonPrefix ? splitPathBySlash(node.name_).slice(commonPrefix.length).join('/') : node.name_
     return {
-      name_: name,
+      name_: node.name_,
       source: node.source,
       inputPath_: node.inputPath_,
       sizeText_: bytesToText(node.bytesInOutput_),
@@ -114,9 +114,18 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
     }
   }
 
+  for (let sm of sources.filter(sm => !sm.name.startsWith('('))) {
+    // Find the common directory prefix, not including the file name
+    let parts = splitPathBySlash(sm.name)
+    parts.pop()
+    commonPrefix = commonPrefixFinder(parts.join('/'), commonPrefix)
+  }
 
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     const source = sources[sourceIndex];
+
+    source.name = commonPrefix ? splitPathBySlash(source.name).slice(commonPrefix.length).join('/') : source.name;
+
     if (isSourceMapPath(source.name)) continue;
     let depth = accumulatePath(rootNode.children_[sourceMapData.file], source);
     if (depth > maxDepth) maxDepth = depth
@@ -720,7 +729,7 @@ declare global {
 const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): string | void => {
   const encoder = new TextEncoder();
   const byteLength = str => encoder.encode(str).length;
-  // NEVERMIND. changed them! muahaha. note these are IEC 1024 sizes 
+  // NEVERMIND. changed them! muahaha. note these are IEC 1024 sizes
   // console.log(
   //   'reveal', { sourceMapData, node },
   //   `Original: ` + bytesToText(byteLength(node.source.content)),
