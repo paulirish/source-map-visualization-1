@@ -246,7 +246,7 @@ var assignColorsByDirectory = (colorMapping2, node, startAngle, sweepAngle) => {
 };
 var cjsColor = hueAngleToColor(3.5);
 var esmColor = hueAngleToColor(1);
-var otherColor = "#CCC";
+var otherColor = "rgb(204 204 204)";
 var bothColor = [cjsColor, esmColor];
 var colorForFormats = (formats) => {
   if (!formats) return otherColor;

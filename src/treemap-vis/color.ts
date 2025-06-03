@@ -180,7 +180,7 @@ let assignColorsByDirectory = (
 
 export let cjsColor = hueAngleToColor(3.5)
 export let esmColor = hueAngleToColor(1)
-export let otherColor = '#CCC'
+export let otherColor = 'rgb(204 204 204)'; // needs to be rgb for darkenColor
 let bothColor = [cjsColor, esmColor] as const
 
 let colorForFormats = (formats: FORMATS): Color => {
