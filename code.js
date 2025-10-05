@@ -961,11 +961,6 @@ import { createTreemap } from "./out/treemap.js";
       chartPanel.innerHTML = ''; // Clear existing chart
       const treemapVis = createTreemap(globalThis.sm, () => splitPct); // Call createTreemap with source map data
       treemapVis.id = 'treemapVis';
-      treemapVis.onTreeNodeHovered = (backgroundColor) => {
-        if (fileList) {
-          fileList.style.backgroundColor = backgroundColor || ''; // Set background color, clear if undefined
-        }
-      };
       chartPanel.appendChild(treemapVis); // Add treemap to chart panel
     } else {
       console.warn("Source map data not yet loaded.");

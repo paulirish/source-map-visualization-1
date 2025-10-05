@@ -121,11 +121,6 @@ export let computeImporters = (metafile: Metafile): Info => {
   }
 }
 
-declare global {
-  interface Window {
-    fileList: HTMLSelectElement
-  }
-}
 
 export let showWhyFile = (sourceMapData: SourceMapData, node: TreeNode): void => {
   console.log('showwhyfile', {sourceMapData, node});

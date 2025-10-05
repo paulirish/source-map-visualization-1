@@ -610,19 +610,18 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
 
   let changeHoveredNode = (node: TreeNode | null): void => {
     if (hoveredNode !== node) {
+      // Avoid calling updateTextAreas() too eagerly.
+      clearTimeout(debounceTimer);
+
       hoveredNode = node
       canvas.style.cursor = node ? node.sortedChildren_.length ? currentLayout?.node_ === node ? 'auto' : 'zoom-in' : 'pointer' : 'auto';
       invalidate()
-      let backgroundColor;
       if (node && !node.sortedChildren_.length) {
-        backgroundColor = onNodeSelection(sourceMapData, node) as string; // Expecting string return
+        onNodeHover(sourceMapData, node);
       }
-      componentEl?.onTreeNodeHovered(backgroundColor); // Call the callback with the background color
     }
   }
 
-  // @ts-expect-error Property 'onTreeNodeHovered' does not exist on type 'HTMLDivElement'.
-  componentEl.onTreeNodeHovered = null; // Callback for node selection
 
   let searchFor = (children: NodeLayout[], node: TreeNode): NodeLayout | null => {
     for (let child of children) {
@@ -725,22 +724,24 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
 
 declare global {
   interface Window {
-    fileList: HTMLSelectElement
+    fileList: HTMLSelectElement & { reveal: () => void  };
   }
 }
 
 const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): string | void => {
-  const encoder = new TextEncoder();
-  const byteLength = str => encoder.encode(str).length;
-  // NEVERMIND. changed them! muahaha. note these are IEC 1024 sizes 
-  // console.log(
-  //   'reveal', { sourceMapData, node },
-  //   `Original: ` + bytesToText(byteLength(node.source.content)),
-  //   'Bundled: ' + bytesToText(node.source.mappedByteTotal)
-  // );
+  onNodeHover(sourceMapData, node);
+};
 
-  window.fileList.value = node.inputPath_;
-  window.fileList.reveal();
+let debounceTimer: NodeJS.Timeout;
+const onNodeHover = (sourceMapData: SourceMapData, node: TreeNode): string | void => {
+  clearTimeout(debounceTimer);
+  const updateTextAreas = () => {
+    console.log('Updating text area for', node.inputPath_)
+    window.fileList.value = node.inputPath_
+    const backgroundColor = cssBackgroundForInputPath(node.inputPath_)
+    window.fileList.style.backgroundColor = backgroundColor || ''
+    window.fileList.reveal()
+  }
+  debounceTimer = setTimeout(updateTextAreas, 150);
 
-  return cssBackgroundForInputPath(node.inputPath_);
-}
+};
