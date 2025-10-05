@@ -14,3 +14,4 @@ This is a visualization of JavaScript/CSS source map data, which is useful for d
 - highlight ranges in text editor when hovering treemap node.
 - align the bg colors used in both.
 - look into the multiple tick() calls per frame. seems wrong.
+- use https://github.com/thepassle/module-graph to parse module graph of original sources. reveal like bundlebuddy to explain why something is there.
