@@ -156,6 +156,9 @@ export let splitPathBySlash = (path: string): string[] => {
 
 export let commonPrefixFinder = (path: string, commonPrefix: string[] | undefined): string[] => {
   if (path === '') return []
+  // exclude unmapped and sourcemappingURL nodes
+  if (path.startsWith('(')) return []
+
   let parts = splitPathBySlash(path)
   if (!commonPrefix) return parts
 

@@ -773,6 +773,7 @@ import { createTreemap } from "./out/treemap.js";
           };
           isInvalid = true;
         }
+
         if (hover?.mapping) {
           originalTextArea.scrollTo(hover.mapping.originalColumn, hover.mapping.originalLine);
           generatedTextArea.scrollTo(hover.mapping.generatedColumn, hover.mapping.generatedLine);

@@ -115,9 +115,21 @@ let analyzeSourceMapTree = (sourceMapData: SourceMapData): Tree => {
   }
 
 
+
+  for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
+    const source = sources[sourceIndex];
+    let parts = splitPathBySlash(source.name)
+    parts.pop()
+    commonPrefix = commonPrefixFinder(parts.join('/'), commonPrefix)
+  }
+
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     const source = sources[sourceIndex];
     if (isSourceMapPath(source.name)) continue;
+
+    let name = commonPrefix ? splitPathBySlash(source.name).slice(commonPrefix.length).join('/') : o
+    source.name = name;
+
     let depth = accumulatePath(rootNode.children_[sourceMapData.file], source);
     if (depth > maxDepth) maxDepth = depth
   }
@@ -267,8 +279,6 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
       let y2 = Math.round(oy2 + (ny2 - oy2) * t)
       let wrap64 = (x: number) => x - Math.floor(x / 64 - 0.5) * 64
       currentLayout = layoutTreemap([currentNode.node_], x1, y1, x2 - x1, y2 - y1)[0]
-      globalThis.layoutNodes = layoutNodes;
-      globalThis.tree = tree;
       currentOriginX = wrap64(-(ox1 + ox2) / 2) * (1 - t) + (x1 + x2) / 2
       currentOriginY = wrap64(-(oy1 + oy2) / 2) * (1 - t) + (y1 + y2) / 2
     } else {
@@ -292,8 +302,6 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
     c.scale(ratio, ratio)
     if (width !== oldWidth || height !== oldHeight) {
       layoutNodes = layoutTreemap(tree.root_.sortedChildren_, 0, 0, width - 1, height - 1)
-      globalThis.layoutNodes = layoutNodes;
-      globalThis.tree = tree;
       updateCurrentLayout()
     }
     draw()

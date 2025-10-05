@@ -64,6 +64,19 @@ var splitPathBySlash = (path) => {
   }
   return parts;
 };
+var commonPrefixFinder = (path, commonPrefix) => {
+  if (path === "") return [];
+  if (path.startsWith("(")) return [];
+  let parts = splitPathBySlash(path);
+  if (!commonPrefix) return parts;
+  for (let i = 0; i <= parts.length; i++) {
+    if (commonPrefix[i] !== parts[i]) {
+      commonPrefix.length = i;
+      break;
+    }
+  }
+  return commonPrefix;
+};
 var lastInteractionWasKeyboard = false;
 var darkMode = matchMedia("(prefers-color-scheme: dark)");
 var darkModeDidChange = () => darkModeListener && darkModeListener();
@@ -79,7 +92,7 @@ window.addEventListener("wheel", (e) => wheelEventListener && wheelEventListener
 window.addEventListener("resize", () => resizeEventListener && resizeEventListener());
 try {
   darkMode.addEventListener("change", darkModeDidChange);
-} catch (o) {
+} catch (o2) {
   darkMode.addListener(darkModeDidChange);
 }
 try {
@@ -323,7 +336,15 @@ var analyzeSourceMapTree = (sourceMapData) => {
   };
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     const source = sources[sourceIndex];
+    let parts = splitPathBySlash(source.name);
+    parts.pop();
+    commonPrefix = commonPrefixFinder(parts.join("/"), commonPrefix);
+  }
+  for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
+    const source = sources[sourceIndex];
     if (isSourceMapPath(source.name)) continue;
+    let name = commonPrefix ? splitPathBySlash(source.name).slice(commonPrefix.length).join("/") : o;
+    source.name = name;
     let depth = accumulatePath(rootNode.children_[sourceMapData.file], source);
     if (depth > maxDepth) maxDepth = depth;
   }
@@ -443,8 +464,6 @@ var createTreemap = (sourceMapData, getSplitPct) => {
       let y2 = Math.round(oy2 + (ny2 - oy2) * t);
       let wrap64 = (x) => x - Math.floor(x / 64 - 0.5) * 64;
       currentLayout = layoutTreemap([currentNode.node_], x1, y1, x2 - x1, y2 - y1)[0];
-      globalThis.layoutNodes = layoutNodes;
-      globalThis.tree = tree;
       currentOriginX = wrap64(-(ox1 + ox2) / 2) * (1 - t) + (x1 + x2) / 2;
       currentOriginY = wrap64(-(oy1 + oy2) / 2) * (1 - t) + (y1 + y2) / 2;
     } else {
@@ -466,8 +485,6 @@ var createTreemap = (sourceMapData, getSplitPct) => {
     c.scale(ratio, ratio);
     if (width !== oldWidth || height !== oldHeight) {
       layoutNodes = layoutTreemap(tree.root_.sortedChildren_, 0, 0, width - 1, height - 1);
-      globalThis.layoutNodes = layoutNodes;
-      globalThis.tree = tree;
       updateCurrentLayout();
     }
     draw();
@@ -705,17 +722,15 @@ var createTreemap = (sourceMapData, getSplitPct) => {
   };
   let changeHoveredNode = (node) => {
     if (hoveredNode !== node) {
+      clearTimeout(debounceTimer);
       hoveredNode = node;
       canvas.style.cursor = node ? node.sortedChildren_.length ? currentLayout?.node_ === node ? "auto" : "zoom-in" : "pointer" : "auto";
       invalidate();
-      let backgroundColor;
       if (node && !node.sortedChildren_.length) {
-        backgroundColor = onNodeSelection(sourceMapData, node);
+        onNodeHover(sourceMapData, node);
       }
-      componentEl?.onTreeNodeHovered(backgroundColor);
     }
   };
-  componentEl.onTreeNodeHovered = null;
   let searchFor = (children, node) => {
     for (let child of children) {
       let result = child.node_ === node ? child : searchFor(child.children_, node);
@@ -799,11 +814,19 @@ var createTreemap = (sourceMapData, getSplitPct) => {
   return componentEl;
 };
 var onNodeSelection = (sourceMapData, node) => {
-  const encoder = new TextEncoder();
-  const byteLength = (str) => encoder.encode(str).length;
-  window.fileList.value = node.inputPath_;
-  window.fileList.reveal();
-  return cssBackgroundForInputPath(node.inputPath_);
+  onNodeHover(sourceMapData, node);
+};
+var debounceTimer;
+var onNodeHover = (sourceMapData, node) => {
+  clearTimeout(debounceTimer);
+  const updateTextAreas = () => {
+    console.log("Updating text area for", node.inputPath_);
+    window.fileList.value = node.inputPath_;
+    const backgroundColor = cssBackgroundForInputPath(node.inputPath_);
+    window.fileList.style.backgroundColor = backgroundColor || "";
+    window.fileList.reveal();
+  };
+  debounceTimer = setTimeout(updateTextAreas, 150);
 };
 export {
   createTreemap
