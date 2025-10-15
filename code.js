@@ -842,6 +842,15 @@ import { createTreemap } from "./out/treemap.js";
         const range = rangeOfMapping(i);
         if (!range) continue;
 
+        // ran into this on a gh sourcemap. it was some closing brackets at the end of the generated file. shrug.
+        if (!sm.sources[originalSource]) {
+          for (let j = range.startColumn; j < range.endColumn; j++) {
+            codeByRowsColumns[generatedLine][j] = '🟡';
+          }
+          continue;
+        }
+
+
         const textSegment = raw.slice(range.startIndex, range.endIndex);
         sm.sources[originalSource].generatedRanges.push(range);
         sm.sources[originalSource].mappedStrings += textSegment;
