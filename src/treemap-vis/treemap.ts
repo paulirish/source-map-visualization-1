@@ -9,6 +9,7 @@ import {
   moduleTypeLabelInputPath,
   setAfterColorMappingUpdate,
 } from './color'
+export { cssBackgroundForInputPath } from './color'
 import {
   bytesToText,
   commonPrefixFinder,
@@ -235,7 +236,11 @@ let layoutTreemap = (sortedChildren: TreeNode[], x: number, y: number, w: number
   return children
 }
 
-export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => number): HTMLDivElement => {
+export interface TreemapOptions {
+  onNodeHover?: (node: TreeNode) => void;
+}
+
+export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => number, options: TreemapOptions = {}): HTMLDivElement => {
   let tree = analyzeSourceMapTree(sourceMapData)
   updateColorMapping(tree, colorMode); // Call updateColorMapping here
   let layoutNodes: NodeLayout[] = []
@@ -608,6 +613,7 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
     }
   }
 
+  let debounceTimer: NodeJS.Timeout;
   let changeHoveredNode = (node: TreeNode | null): void => {
     if (hoveredNode !== node) {
       // Avoid calling updateTextAreas() too eagerly.
@@ -617,7 +623,9 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
       canvas.style.cursor = node ? node.sortedChildren_.length ? currentLayout?.node_ === node ? 'auto' : 'zoom-in' : 'pointer' : 'auto';
       invalidate()
       if (node && !node.sortedChildren_.length) {
-        onNodeHover(sourceMapData, node);
+        debounceTimer = setTimeout(() => {
+          options.onNodeHover && options.onNodeHover(node);
+        }, 150);
       }
     }
   }
@@ -657,7 +665,8 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
     if (layout) {
       let node = layout.node_
       if (!node.sortedChildren_.length) {
-        onNodeSelection(sourceMapData, node)
+        // onNodeSelection(sourceMapData, node)
+        options.onNodeHover && options.onNodeHover(node);
         updateHover(e)
       } else if (layout !== currentLayout) {
         changeCurrentNode(layout)
@@ -693,10 +702,8 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
   componentEl.append(sectionEl)
 
   // @ts-expect-error Gross hack, you're welcome.
-  componentEl.highlightNode = (hover: any, sourceIndex: any) => {
-    const originalSource = sourceMapData.sources[sourceIndex];
-    if (originalSource) {
-      const inputPath = originalSource.name;
+  componentEl.setHoveredFile = (inputPath: string | null) => {
+    if (inputPath) {
       const findNodeByInputPath = (nodes: NodeLayout[], targetInputPath: string): TreeNode | null => {
         for (const n of nodes) {
           if (n.node_.inputPath_ === targetInputPath) {
@@ -710,8 +717,10 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
         return null;
       };
       hoveredNode = findNodeByInputPath(layoutNodes, inputPath);
-      draw();
+    } else {
+      hoveredNode = null;
     }
+    draw();
   };
 
   // @ts-expect-error Gross hack, you're welcome.
@@ -722,26 +731,3 @@ export let createTreemap = (sourceMapData: SourceMapData, getSplitPct: () => num
 
 
 
-declare global {
-  interface Window {
-    fileList: HTMLSelectElement & { reveal: () => void  };
-  }
-}
-
-const onNodeSelection = (sourceMapData: SourceMapData, node: TreeNode): string | void => {
-  onNodeHover(sourceMapData, node);
-};
-
-let debounceTimer: NodeJS.Timeout;
-const onNodeHover = (sourceMapData: SourceMapData, node: TreeNode): string | void => {
-  clearTimeout(debounceTimer);
-  const updateTextAreas = () => {
-    console.log('Updating text area for', node.inputPath_)
-    window.fileList.value = node.inputPath_
-    const backgroundColor = cssBackgroundForInputPath(node.inputPath_)
-    window.fileList.style.backgroundColor = backgroundColor || ''
-    window.fileList.reveal()
-  }
-  debounceTimer = setTimeout(updateTextAreas, 150);
-
-};

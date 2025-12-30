@@ -1,4 +1,4 @@
-import { createTreemap } from "./out/treemap.js";
+import { createTreemap, cssBackgroundForInputPath } from "./out/treemap.js";
 
 (() => {
 
@@ -968,7 +968,14 @@ import { createTreemap } from "./out/treemap.js";
     // Treemap visualization integration
     if (globalThis.sm) {
       chartPanel.innerHTML = ''; // Clear existing chart
-      const treemapVis = createTreemap(globalThis.sm, () => splitPct); // Call createTreemap with source map data
+      const onNodeHover = (node) => {
+        console.log('Updating text area for', node.inputPath_)
+        fileList.value = node.inputPath_
+        const backgroundColor = cssBackgroundForInputPath(node.inputPath_)
+        fileList.style.backgroundColor = backgroundColor || ''
+        fileList.reveal()
+      }
+      const treemapVis = createTreemap(globalThis.sm, () => splitPct, { onNodeHover }); // Call createTreemap with source map data
       treemapVis.id = 'treemapVis';
       chartPanel.appendChild(treemapVis); // Add treemap to chart panel
     } else {
@@ -2161,9 +2168,9 @@ import { createTreemap } from "./out/treemap.js";
     c.fillStyle = 'rgba(127, 127, 127, 0.2)';
     c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight * splitPct - toolbarHeight - statusBarHeight);
 
-    if (hover?.mapping) {
-      window.treemapVis?.highlightNode(hover, hover.mapping.originalSource)
-    }
+    // if (hover?.mapping) {
+    //   window.treemapVis?.highlightNode(hover, hover.mapping.originalSource)
+    // }
 
     // Draw the arrow between the two hover areas
     if (hover && hover.mapping && originalTextArea && originalTextArea.sourceIndex === hover.mapping.originalSource) {
@@ -2229,6 +2236,15 @@ import { createTreemap } from "./out/treemap.js";
 
     if (JSON.stringify(hover) !== JSON.stringify(oldHover)) {
       isInvalid = true;
+      if (hover?.mapping && globalThis.sm) {
+        const sourceIndex = hover.mapping.originalSource;
+        const originalSource = globalThis.sm.sources[sourceIndex];
+        if (originalSource) {
+          window.treemapVis?.setHoveredFile(originalSource.name)
+        }
+      } else {
+        window.treemapVis?.setHoveredFile(null)
+      }
     }
   };
 

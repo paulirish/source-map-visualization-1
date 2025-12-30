@@ -421,7 +421,7 @@ var layoutTreemap = (sortedChildren, x, y, w, h) => {
   squarify(0, x, y, w, h);
   return children;
 };
-var createTreemap = (sourceMapData, getSplitPct) => {
+var createTreemap = (sourceMapData, getSplitPct, options = {}) => {
   let tree = analyzeSourceMapTree(sourceMapData);
   updateColorMapping(tree, colorMode);
   let layoutNodes = [];
@@ -720,6 +720,7 @@ var createTreemap = (sourceMapData, getSplitPct) => {
       hideTooltip();
     }
   };
+  let debounceTimer;
   let changeHoveredNode = (node) => {
     if (hoveredNode !== node) {
       clearTimeout(debounceTimer);
@@ -727,7 +728,9 @@ var createTreemap = (sourceMapData, getSplitPct) => {
       canvas.style.cursor = node ? node.sortedChildren_.length ? currentLayout?.node_ === node ? "auto" : "zoom-in" : "pointer" : "auto";
       invalidate();
       if (node && !node.sortedChildren_.length) {
-        onNodeHover(sourceMapData, node);
+        debounceTimer = setTimeout(() => {
+          options.onNodeHover && options.onNodeHover(node);
+        }, 150);
       }
     }
   };
@@ -761,7 +764,7 @@ var createTreemap = (sourceMapData, getSplitPct) => {
     if (layout) {
       let node = layout.node_;
       if (!node.sortedChildren_.length) {
-        onNodeSelection(sourceMapData, node);
+        options.onNodeHover && options.onNodeHover(node);
         updateHover(e);
       } else if (layout !== currentLayout) {
         changeCurrentNode(layout);
@@ -790,10 +793,8 @@ var createTreemap = (sourceMapData, getSplitPct) => {
   let sectionEl = document.createElement("section");
   sectionEl.append(colorLegendEl);
   componentEl.append(sectionEl);
-  componentEl.highlightNode = (hover, sourceIndex) => {
-    const originalSource = sourceMapData.sources[sourceIndex];
-    if (originalSource) {
-      const inputPath = originalSource.name;
+  componentEl.setHoveredFile = (inputPath) => {
+    if (inputPath) {
       const findNodeByInputPath = (nodes, targetInputPath) => {
         for (const n of nodes) {
           if (n.node_.inputPath_ === targetInputPath) {
@@ -807,28 +808,16 @@ var createTreemap = (sourceMapData, getSplitPct) => {
         return null;
       };
       hoveredNode = findNodeByInputPath(layoutNodes, inputPath);
-      draw();
+    } else {
+      hoveredNode = null;
     }
+    draw();
   };
   componentEl.resize = resize;
   return componentEl;
 };
-var onNodeSelection = (sourceMapData, node) => {
-  onNodeHover(sourceMapData, node);
-};
-var debounceTimer;
-var onNodeHover = (sourceMapData, node) => {
-  clearTimeout(debounceTimer);
-  const updateTextAreas = () => {
-    console.log("Updating text area for", node.inputPath_);
-    window.fileList.value = node.inputPath_;
-    const backgroundColor = cssBackgroundForInputPath(node.inputPath_);
-    window.fileList.style.backgroundColor = backgroundColor || "";
-    window.fileList.reveal();
-  };
-  debounceTimer = setTimeout(updateTextAreas, 150);
-};
 export {
-  createTreemap
+  createTreemap,
+  cssBackgroundForInputPath
 };
 //# sourceMappingURL=treemap.js.map
