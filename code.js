@@ -83,7 +83,7 @@ import { createTreemap } from "./out/treemap.js";
   const chartPanel = document.getElementById('chartPanel'); // Get chart panel
   let splitPct = 0.35; // vertical split percentage. How much size to give editor.
   progressBarOverlay.style.top = `calc(${splitPct * 100}% - 6px * 2)`;
-  const toolbarHeight = toolbar.offsetHeight || 24;
+  let toolbarHeight = toolbar.offsetHeight || 24;
   const statusBarHeight = parseFloat(getComputedStyle(statusBar).getPropertyValue('--height')) || 32;
   let topOffset = 0;
 
@@ -687,6 +687,7 @@ import { createTreemap } from "./out/treemap.js";
 
     // Let the browser update before parsing the source map, which may be slow
     await waitForDOM();
+    toolbarHeight = toolbar.offsetHeight;
     const sm = parseSourceMap(map, code);
     globalThis.sm = sm;
 
@@ -729,6 +730,15 @@ import { createTreemap } from "./out/treemap.js";
           otherSource,
           originalName,
           bounds() {
+            const isMobile = innerWidth < 600;
+            if (isMobile) {
+              return {
+                x: 0,
+                y: toolbarHeight,
+                width: innerWidth,
+                height: (innerHeight * splitPct - toolbarHeight - statusBarHeight) / 2,
+              };
+            }
             return {
               x: 0,
               y: toolbarHeight,
@@ -792,6 +802,16 @@ import { createTreemap } from "./out/treemap.js";
       otherSource,
       originalName,
       bounds() {
+        const isMobile = innerWidth < 600;
+        if (isMobile) {
+          const height = (innerHeight * splitPct - toolbarHeight - statusBarHeight) / 2;
+          return {
+            x: 0,
+            y: toolbarHeight + height,
+            width: innerWidth,
+            height,
+          };
+        }
         const x = (innerWidth >> 1) + ((splitterWidth + 1) >> 1);
         return {
           x,
@@ -2159,14 +2179,19 @@ import { createTreemap } from "./out/treemap.js";
 
     // Draw the splitter
     c.fillStyle = 'rgba(127, 127, 127, 0.2)';
-    c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight * splitPct - toolbarHeight - statusBarHeight);
+    const isMobile = innerWidth < 600;
+    if (isMobile) {
+      c.fillRect(0, toolbarHeight + (innerHeight * splitPct - toolbarHeight - statusBarHeight) / 2 - splitterWidth / 2, innerWidth, splitterWidth);
+    } else {
+      c.fillRect((innerWidth >>> 1) - (splitterWidth >> 1), toolbarHeight, splitterWidth, innerHeight * splitPct - toolbarHeight - statusBarHeight);
+    }
 
     if (hover?.mapping) {
       window.treemapVis?.highlightNode(hover, hover.mapping.originalSource)
     }
 
-    // Draw the arrow between the two hover areas
-    if (hover && hover.mapping && originalTextArea && originalTextArea.sourceIndex === hover.mapping.originalSource) {
+    // Draw the arrow between the two hover areas (disable on mobile for now as logic is complex)
+    if (hover && hover.mapping && originalTextArea && originalTextArea.sourceIndex === hover.mapping.originalSource && !isMobile) {
 
 
       const originalHoverRect = originalTextArea.getHoverRect();
@@ -2258,6 +2283,9 @@ import { createTreemap } from "./out/treemap.js";
     // Update styles based on new split percentage
     progressBarOverlay.style.top = `calc(${(splitPct) * 100}% - 6px * 2)`;
     toolbar.style.top = `calc(${(1 - splitPct) * 100}% )`;
+
+    // Update toolbarHeight as it might change on resize (responsiveness)
+    toolbarHeight = toolbar.offsetHeight || 24;
 
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';

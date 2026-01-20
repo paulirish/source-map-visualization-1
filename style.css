@@ -298,3 +298,29 @@ body[data-theme=dark] #progressBar .progress {
   }
 }
 
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 28px;
+    margin-bottom: 30px;
+  }
+  #promptText {
+    padding: 40px 10px;
+  }
+  #toolbar {
+    height: auto;
+    min-height: 24px;
+    flex-wrap: wrap;
+  }
+  #toolbar section {
+    min-width: 100%;
+    padding-bottom: 4px;
+  }
+  #fileListParent {
+    width: 100%;
+    max-width: none;
+  }
+  #statusBar section > :first-child {
+      max-width: 120px;
+  }
+}
