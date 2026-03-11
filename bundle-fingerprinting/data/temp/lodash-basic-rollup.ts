@@ -1,0 +1,1 @@
+import { zip, chunk } from "lodash-es"; console.log(zip([1, 2], [3, 4]), chunk([1, 2, 3, 4], 2));

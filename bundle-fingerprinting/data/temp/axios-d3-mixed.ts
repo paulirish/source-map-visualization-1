@@ -1,0 +1,1 @@
+import axios from "axios"; import * as d3 from "d3"; console.log(axios.VERSION, d3.version);

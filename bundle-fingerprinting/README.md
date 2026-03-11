@@ -22,6 +22,15 @@ We use a specialized subagent to manage the complexity of AST analysis. The agen
 3. **Verify**: Run the `verification-runner` to get an accuracy score.
 4. **Refine**: Adjust the signature based on false positives/negatives.
 
+## Discoveries & Subagent Success
+
+The LLM-driven subagent (`fingerprint-refiner`) successfully evolved our fingerprinting logic from looking at simple node distributions to analyzing deep structural ratios. Key findings:
+- **`lodash`**: Exceptionally high identifier ratio (~42%) and dense variable assignment chains (e.g. `var a = b, c = a;`). 
+- **`moment`**: Dominated by large sequences of standard assignments globally, relatively low functional nesting.
+- **Specific Markers**: The agent learned to look for minification-resistant patterns like `typeof global`, `typeof self`, and literal string comparisons (`"Symbol"`, `"[object Object]"`).
+
+By recursively traversing `BlockStatements` and `CallExpressions`, the `match-bundle` engine can now successfully locate embedded sub-packages (like `axios` hidden inside a larger `d3` wrapper) and score them based on matching structural features.
+
 ## Future Work
 
 - **Live Scrapes**: Collect live bundles from high-profile production sites that ship source maps (e.g., GitHub, nyt, coursehero) to test against "real-world" obfuscation and bundling techniques. (Concept from HTTPArchive/Web Almanac discussions).

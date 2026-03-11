@@ -216,20 +216,22 @@ async function matchBundle(bundlePath: string) {
 }
 
 async function main() {
-  const bundler = 'esbuild';
-  const scenario = 'all-combined';
-  const target = path.join(ROOT, `data/ground-truth/${bundler}/${scenario}/bundle.js`);
+  const target = process.argv[2];
+  
+  if (!target) {
+    console.error('Usage: tsx match-bundle.ts <path/to/bundle.js>');
+    process.exit(1);
+  }
+
   const predictions = await matchBundle(target);
   
   if (predictions.length > 0) {
-      console.log('\n--- Verification Results ---');
-      const { verifyPredictions } = await import('./verification-runner.ts');
-      const results = await verifyPredictions(bundler, scenario, predictions.map(p => ({
-          pkg: p.pkg.split('@')[0], 
-          start: p.start,
-          end: p.end
-      })));
-      console.log(JSON.stringify(results, null, 2));
+      console.log('\n--- Match Results ---');
+      for (const p of predictions) {
+          console.log(`Package: ${p.pkg} \tScore: ${p.score.toFixed(4)} \tRange: ${p.start}-${p.end}`);
+      }
+  } else {
+      console.log('No recognizable packages found.');
   }
 }
 
