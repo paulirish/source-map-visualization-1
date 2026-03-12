@@ -85,7 +85,8 @@ async function crawlPackage(pkgName: string) {
             identifierRatio: (sig as any).identifierRatio,
             ternaryRatio: (sig as any).ternaryRatio,
             assignmentChainRatio: (sig as any).assignmentChainRatio,
-            patternRatios: (sig as any).patternRatios
+            patternRatios: (sig as any).patternRatios,
+            anchors: (sig as any).anchors
         };
       }
     } catch (e) {

@@ -6,6 +6,7 @@ export interface Fingerprint {
   ternaryRatio: number;
   assignmentChainRatio: number;
   patternRatios: Record<string, number>;
+  anchors: string[];
 }
 
 export interface PackageRecord {
@@ -22,4 +23,5 @@ export interface PackageSignatureRaw {
   ternaryRatio: number;
   assignmentChainRatio: number;
   patternRatios: Record<string, number>;
+  anchors: string[];
 }

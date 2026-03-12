@@ -33,7 +33,8 @@ export async function extractSignatureFromBundle(bundlePath: string, mapPath: st
           signatures[pkgName] = { 
             packageName: pkgName, nodeDist: {}, totalNodes: 0,
             declarations: 0, declarators: 0, identifiers: 0, ternaries: 0, assignmentChains: 0,
-            patterns: { typeofGlobal: 0, typeofSelf: 0, typeofSymbol: 0, objectToString: 0 }
+            patterns: { typeofGlobal: 0, typeofSelf: 0, typeofSymbol: 0, objectToString: 0 },
+            anchors: new Set<string>()
           };
         }
         
@@ -47,6 +48,18 @@ export async function extractSignatureFromBundle(bundlePath: string, mapPath: st
         }
         if (node.type === 'Identifier') sig.identifiers++;
         if (node.type === 'ConditionalExpression') sig.ternaries++;
+
+        // --- Semantic Anchors ---
+        if (node.type === 'Literal') {
+            const val = String(node.value);
+            // Heuristic for "Uniqueness": Long-ish strings, or very specific short ones
+            if (val.length > 5 || /^[A-Z_]+$/.test(val)) {
+                sig.anchors.add(val);
+            }
+        }
+        if (node.type === 'RegExpLiteral') {
+            sig.anchors.add(node.regex.pattern);
+        }
 
         if (node.type === 'BinaryExpression' && (node.operator === '===' || node.operator === '==')) {
             const left = code.substring(node.left.start, node.left.end);
@@ -85,6 +98,7 @@ export async function extractSignatureFromBundle(bundlePath: string, mapPath: st
       for (const [p, count] of Object.entries(sig.patterns)) {
           sig.patternRatios[p] = sig.totalNodes > 0 ? (count as number) / sig.totalNodes : 0;
       }
+      sig.anchors = Array.from(sig.anchors);
   }
 
   return signatures;

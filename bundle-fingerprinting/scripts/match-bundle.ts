@@ -35,44 +35,66 @@ async function loadFingerprints(): Promise<PackageRecord[]> {
 }
 
 function calculateSimilarity(statsA: any, statsB: any) {
-  // statsA is the current node being analyzed
+  // statsA is the current node being analyzed (from bundle)
   // statsB is the fingerprint from the database
   
   let score = 0;
-  
-  // 1. Node distribution similarity (Manhattan distance)
-  const allTypes = new Set([...Object.keys(statsA.nodeDist), ...Object.keys(statsB.nodeDist)]);
-  let distScore = 0;
-  for (const type of allTypes) {
-    const valA = statsA.nodeDist[type] || 0;
-    const valB = statsB.nodeDist[type] || 0;
-    distScore += Math.abs(valA - valB);
-  }
-  score += distScore * 1.5; // Slightly higher weight for full distribution
+  let anchorMatches = 0;
+  const matchedAnchors: string[] = [];
 
-  // 2. Structural feature similarity
-  // Identifier ratio is a PRIMARY invariant across minifiers
-  score += Math.abs(statsA.identifierRatio - statsB.identifierRatio) * 10.0; 
-  
-  // Ternary ratio is VOLATILE (minifiers transform if-else differently) - lower weight
-  score += Math.abs(statsA.ternaryRatio - statsB.ternaryRatio) * 2.0; 
-  
-  score += Math.abs(statsA.avgDeclaratorsPerDeclaration - statsB.avgDeclaratorsPerDeclaration) * 0.2;
-  score += Math.abs(statsA.assignmentChainRatio - statsB.assignmentChainRatio) * 15.0;
-
-  // 3. Pattern similarity - High Weight Anchors
-  if (statsA.patternRatios && statsB.patternRatios) {
-      for (const p in statsA.patternRatios) {
-          const valA = statsA.patternRatios[p] || 0;
-          const valB = statsB.patternRatios[p] || 0;
-          if (valB > 0) {
-              // If the fingerprint HAS this pattern, it's a very strong signal
-              score += Math.abs(valA - valB) * 100.0;
+  // 1. Semantic Anchor Match (Strong proof)
+  if (statsA.anchors && statsB.anchors) {
+      const setB = new Set(statsB.anchors);
+      for (const a of statsA.anchors) {
+          if (setB.has(a)) {
+              anchorMatches++;
+              matchedAnchors.push(a);
           }
       }
   }
   
-  return score;
+  // 2. Node distribution (Structural heuristic)
+  const types = new Set([...Object.keys(statsA.nodeDist), ...Object.keys(statsB.nodeDist)]);
+  let distDiff = 0;
+  for (const type of types) {
+    const a = statsA.nodeDist[type] || 0;
+    const b = statsB.nodeDist[type] || 0;
+    distDiff += Math.abs(a - b);
+  }
+  score += distDiff * 0.4; // 40% weight to node distribution
+
+  // 3. Structural Ratios (Invariant heuristic)
+  const idDiff = Math.abs((statsA.identifierRatio || 0) - (statsB.identifierRatio || 0));
+  score += idDiff * 0.3; // 30% weight to stable identifier ratio
+
+  const decDiff = Math.abs((statsA.avgDeclaratorsPerDeclaration || 0) - (statsB.avgDeclaratorsPerDeclaration || 0));
+  score += decDiff * 0.1;
+
+  const chainDiff = Math.abs((statsA.assignmentChainRatio || 0) - (statsB.assignmentChainRatio || 0));
+  score += chainDiff * 0.1;
+
+  const ternaryDiff = Math.abs((statsA.ternaryRatio || 0) - (statsB.ternaryRatio || 0));
+  score += ternaryDiff * 0.05; // 5% weight to volatile ternary ratio
+
+  // 4. Pattern Ratios (Contextual proof)
+  if (statsA.patternRatios && statsB.patternRatios) {
+      let patternDiff = 0;
+      for (const p in statsB.patternRatios) {
+          patternDiff += Math.abs((statsA.patternRatios[p] || 0) - (statsB.patternRatios[p] || 0));
+      }
+      score += patternDiff * 0.05;
+  }
+
+  // Anchor Boost: If we have multiple unique anchor matches, drastically reduce the "distance" score
+  const anchorBoost = Math.min(anchorMatches * 0.15, 0.6); // Up to 60% reduction
+  score *= (1 - anchorBoost);
+
+  return {
+      score,
+      anchorMatches,
+      matchedAnchors: matchedAnchors.slice(0, 5), // Keep top 5 for reasoning
+      structuralScore: 1 - Math.min(score, 1)
+  };
 }
 
 export async function matchBundle(bundlePath: string, verbose = false) {
@@ -102,7 +124,8 @@ export async function matchBundle(bundlePath: string, verbose = false) {
             typeofSelf: 0,
             typeofSymbol: 0,
             objectToString: 0
-        }
+        },
+        anchors: new Set<string>()
     };
 
     function walk(n: any) {
@@ -133,6 +156,15 @@ export async function matchBundle(bundlePath: string, verbose = false) {
         if (n.type === 'MemberExpression') {
             const member = code.substring(n.start, n.end);
             if (member.includes('Object.prototype.toString')) stats.patterns.objectToString++;
+        }
+
+        // --- Semantic Anchors ---
+        if (n.type === 'Literal') {
+            const val = String(n.value);
+            if (val.length > 5 || /^[A-Z_]+$/.test(val)) stats.anchors.add(val);
+        }
+        if (n.type === 'RegExpLiteral') {
+            stats.anchors.add(n.regex.pattern);
         }
       }
       for (const key in n) {
@@ -165,7 +197,8 @@ export async function matchBundle(bundlePath: string, verbose = false) {
                 typeofSelf: stats.patterns.typeofSelf / stats.total,
                 typeofSymbol: stats.patterns.typeofSymbol / stats.total,
                 objectToString: stats.patterns.objectToString / stats.total
-            }
+            },
+            anchors: Array.from(stats.anchors)
         };
 
         let bestMatch: any = null;
@@ -173,10 +206,14 @@ export async function matchBundle(bundlePath: string, verbose = false) {
 
         for (const pkg of fingerprints) {
           for (const [version, fprint] of Object.entries(pkg.versions)) {
-            const score = calculateSimilarity(currentStats, fprint);
-            if (score < minScore) {
-              minScore = score;
-              bestMatch = { pkg: pkg.packageName, version, score, start: node.start, end: node.end };
+            const result = calculateSimilarity(currentStats, fprint);
+            if (result.score < minScore) {
+              minScore = result.score;
+              bestMatch = { 
+                  pkg: pkg.packageName, version, score: result.score, 
+                  start: node.start, end: node.end, 
+                  report: result 
+              };
             }
           }
         }
@@ -253,7 +290,16 @@ async function main() {
   if (predictions.length > 0) {
       console.log('\n--- Match Results ---');
       for (const p of predictions) {
-          console.log(`Package: ${p.pkg} \tScore: ${p.score.toFixed(4)} \tRange: ${p.start}-${p.end}`);
+          const report = p.report;
+          console.log(`\nPackage: ${p.pkg} 	Confidence: ${(report.structuralScore * 100).toFixed(1)}% 	Range: ${p.start}-${p.end}`);
+          if (report.anchorMatches > 0) {
+              console.log(`  ✅ Semantic Proof: ${report.anchorMatches} unique anchors matched.`);
+              if (report.matchedAnchors.length > 0) {
+                  console.log(`     - [${report.matchedAnchors.join(', ')}]`);
+              }
+          } else {
+              console.log(`  ⚠️  Heuristic Match: Based on structural ratios (no unique anchors found).`);
+          }
       }
   } else {
       console.log('No recognizable packages found.');
