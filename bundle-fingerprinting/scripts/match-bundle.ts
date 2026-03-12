@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
-const FINGERPRINTS_PATH = path.join(ROOT, 'data/fingerprints.json');
+const FINGERPRINTS_DIR = path.join(ROOT, 'data/fingerprints');
 
 interface Fingerprint {
   totalNodes: number;
@@ -22,9 +22,16 @@ interface PackageRecord {
 }
 
 async function loadFingerprints(): Promise<PackageRecord[]> {
-  const content = await fs.readFile(FINGERPRINTS_PATH, 'utf-8');
-  const data = JSON.parse(content);
-  return Object.values(data);
+  const files = await fs.readdir(FINGERPRINTS_DIR);
+  const fingerprints: PackageRecord[] = [];
+  
+  for (const file of files) {
+    if (!file.endsWith('.json')) continue;
+    const content = await fs.readFile(path.join(FINGERPRINTS_DIR, file), 'utf-8');
+    fingerprints.push(JSON.parse(content));
+  }
+  
+  return fingerprints;
 }
 
 function calculateSimilarity(statsA: any, statsB: any) {

@@ -1,0 +1,280 @@
+{
+  "packageName": "d3-brush@3.0.0",
+  "versions": {
+    "esbuild-all-combined": {
+      "totalNodes": 229,
+      "nodeDist": {
+        "VariableDeclaration": 0.008733624454148471,
+        "VariableDeclarator": 0.017467248908296942,
+        "ObjectPattern": 0.004366812227074236,
+        "Property": 0.06986899563318777,
+        "Identifier": 0.3056768558951965,
+        "FunctionDeclaration": 0.013100436681222707,
+        "BlockStatement": 0.039301310043668124,
+        "ReturnStatement": 0.039301310043668124,
+        "ArrayExpression": 0.056768558951965066,
+        "UnaryExpression": 0.026200873362445413,
+        "MemberExpression": 0.11790393013100436,
+        "Literal": 0.1965065502183406,
+        "CallExpression": 0.026200873362445413,
+        "ObjectExpression": 0.017467248908296942,
+        "FunctionExpression": 0.026200873362445413,
+        "ConditionalExpression": 0.013100436681222707,
+        "BinaryExpression": 0.013100436681222707,
+        "LogicalExpression": 0.008733624454148471
+      },
+      "avgDeclaratorsPerDeclaration": 2,
+      "identifierRatio": 0.3056768558951965,
+      "ternaryRatio": 0.013100436681222707,
+      "assignmentChainRatio": 0.004366812227074236,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "esbuild-axios-d3-mixed": {
+      "totalNodes": 229,
+      "nodeDist": {
+        "VariableDeclaration": 0.008733624454148471,
+        "VariableDeclarator": 0.017467248908296942,
+        "ObjectPattern": 0.004366812227074236,
+        "Property": 0.06986899563318777,
+        "Identifier": 0.3056768558951965,
+        "FunctionDeclaration": 0.013100436681222707,
+        "BlockStatement": 0.039301310043668124,
+        "ReturnStatement": 0.039301310043668124,
+        "ArrayExpression": 0.056768558951965066,
+        "UnaryExpression": 0.026200873362445413,
+        "MemberExpression": 0.11790393013100436,
+        "Literal": 0.1965065502183406,
+        "CallExpression": 0.026200873362445413,
+        "ObjectExpression": 0.017467248908296942,
+        "FunctionExpression": 0.026200873362445413,
+        "ConditionalExpression": 0.013100436681222707,
+        "BinaryExpression": 0.013100436681222707,
+        "LogicalExpression": 0.008733624454148471
+      },
+      "avgDeclaratorsPerDeclaration": 2,
+      "identifierRatio": 0.3056768558951965,
+      "ternaryRatio": 0.013100436681222707,
+      "assignmentChainRatio": 0.004366812227074236,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "swc-standalone-all-combined": {
+      "totalNodes": 40,
+      "nodeDist": {
+        "VariableDeclarator": 0.025,
+        "Identifier": 0.275,
+        "FunctionExpression": 0.025,
+        "BlockStatement": 0.025,
+        "ReturnStatement": 0.025,
+        "ObjectExpression": 0.025,
+        "Property": 0.025,
+        "CallExpression": 0.075,
+        "MemberExpression": 0.1,
+        "ArrayExpression": 0.075,
+        "Literal": 0.3,
+        "AssignmentExpression": 0.025
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.275,
+      "ternaryRatio": 0,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "swc-standalone-axios-d3-mixed": {
+      "totalNodes": 37,
+      "nodeDist": {
+        "VariableDeclarator": 0.02702702702702703,
+        "Identifier": 0.2702702702702703,
+        "FunctionExpression": 0.02702702702702703,
+        "BlockStatement": 0.02702702702702703,
+        "ReturnStatement": 0.02702702702702703,
+        "ObjectExpression": 0.02702702702702703,
+        "Property": 0.02702702702702703,
+        "CallExpression": 0.08108108108108109,
+        "MemberExpression": 0.08108108108108109,
+        "ArrayExpression": 0.08108108108108109,
+        "Literal": 0.32432432432432434
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.2702702702702703,
+      "ternaryRatio": 0,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "uglifyjs-standalone-all-combined": {
+      "totalNodes": 38,
+      "nodeDist": {
+        "FunctionDeclaration": 0.02631578947368421,
+        "Identifier": 0.2894736842105263,
+        "BlockStatement": 0.02631578947368421,
+        "ReturnStatement": 0.02631578947368421,
+        "ObjectExpression": 0.02631578947368421,
+        "Property": 0.02631578947368421,
+        "MemberExpression": 0.10526315789473684,
+        "CallExpression": 0.07894736842105263,
+        "ArrayExpression": 0.07894736842105263,
+        "Literal": 0.3157894736842105
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.2894736842105263,
+      "ternaryRatio": 0,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "uglifyjs-standalone-axios-d3-mixed": {
+      "totalNodes": 38,
+      "nodeDist": {
+        "FunctionDeclaration": 0.02631578947368421,
+        "Identifier": 0.2894736842105263,
+        "BlockStatement": 0.02631578947368421,
+        "ReturnStatement": 0.02631578947368421,
+        "ObjectExpression": 0.02631578947368421,
+        "Property": 0.02631578947368421,
+        "MemberExpression": 0.10526315789473684,
+        "CallExpression": 0.07894736842105263,
+        "ArrayExpression": 0.07894736842105263,
+        "Literal": 0.3157894736842105
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.2894736842105263,
+      "ternaryRatio": 0,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "webpack-swc-all-combined": {
+      "totalNodes": 36,
+      "nodeDist": {
+        "FunctionDeclaration": 0.027777777777777776,
+        "Identifier": 0.2777777777777778,
+        "BlockStatement": 0.027777777777777776,
+        "ReturnStatement": 0.027777777777777776,
+        "ObjectExpression": 0.027777777777777776,
+        "Property": 0.027777777777777776,
+        "CallExpression": 0.08333333333333333,
+        "MemberExpression": 0.08333333333333333,
+        "ArrayExpression": 0.08333333333333333,
+        "Literal": 0.3333333333333333
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.2777777777777778,
+      "ternaryRatio": 0,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "webpack-swc-axios-d3-mixed": {
+      "totalNodes": 36,
+      "nodeDist": {
+        "FunctionDeclaration": 0.027777777777777776,
+        "Identifier": 0.2777777777777778,
+        "BlockStatement": 0.027777777777777776,
+        "ReturnStatement": 0.027777777777777776,
+        "ObjectExpression": 0.027777777777777776,
+        "Property": 0.027777777777777776,
+        "CallExpression": 0.08333333333333333,
+        "MemberExpression": 0.08333333333333333,
+        "ArrayExpression": 0.08333333333333333,
+        "Literal": 0.3333333333333333
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.2777777777777778,
+      "ternaryRatio": 0,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "webpack-terser-all-combined": {
+      "totalNodes": 79,
+      "nodeDist": {
+        "ExpressionStatement": 0.02531645569620253,
+        "SequenceExpression": 0.02531645569620253,
+        "MemberExpression": 0.12658227848101267,
+        "Identifier": 0.3291139240506329,
+        "FunctionDeclaration": 0.0379746835443038,
+        "BlockStatement": 0.0379746835443038,
+        "ReturnStatement": 0.0379746835443038,
+        "ArrayExpression": 0.06329113924050633,
+        "UnaryExpression": 0.02531645569620253,
+        "Literal": 0.20253164556962025,
+        "CallExpression": 0.06329113924050633,
+        "ObjectExpression": 0.012658227848101266,
+        "Property": 0.012658227848101266
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.3291139240506329,
+      "ternaryRatio": 0,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "webpack-terser-axios-d3-mixed": {
+      "totalNodes": 79,
+      "nodeDist": {
+        "ExpressionStatement": 0.02531645569620253,
+        "SequenceExpression": 0.02531645569620253,
+        "MemberExpression": 0.12658227848101267,
+        "Identifier": 0.3291139240506329,
+        "FunctionDeclaration": 0.0379746835443038,
+        "BlockStatement": 0.0379746835443038,
+        "ReturnStatement": 0.0379746835443038,
+        "ArrayExpression": 0.06329113924050633,
+        "UnaryExpression": 0.02531645569620253,
+        "Literal": 0.20253164556962025,
+        "CallExpression": 0.06329113924050633,
+        "ObjectExpression": 0.012658227848101266,
+        "Property": 0.012658227848101266
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.3291139240506329,
+      "ternaryRatio": 0,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    }
+  }
+}

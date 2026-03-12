@@ -1,0 +1,293 @@
+{
+  "packageName": "d3-ease@3.0.1",
+  "versions": {
+    "esbuild-all-combined": {
+      "totalNodes": 30,
+      "nodeDist": {
+        "FunctionDeclaration": 0.03333333333333333,
+        "Identifier": 0.3,
+        "BlockStatement": 0.03333333333333333,
+        "ReturnStatement": 0.03333333333333333,
+        "BinaryExpression": 0.23333333333333334,
+        "ParenthesizedExpression": 0.1,
+        "ConditionalExpression": 0.03333333333333333,
+        "AssignmentExpression": 0.06666666666666667,
+        "Literal": 0.16666666666666666
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.3,
+      "ternaryRatio": 0.03333333333333333,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "esbuild-axios-d3-mixed": {
+      "totalNodes": 30,
+      "nodeDist": {
+        "FunctionDeclaration": 0.03333333333333333,
+        "Identifier": 0.3,
+        "BlockStatement": 0.03333333333333333,
+        "ReturnStatement": 0.03333333333333333,
+        "BinaryExpression": 0.23333333333333334,
+        "ParenthesizedExpression": 0.1,
+        "ConditionalExpression": 0.03333333333333333,
+        "AssignmentExpression": 0.06666666666666667,
+        "Literal": 0.16666666666666666
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.3,
+      "ternaryRatio": 0.03333333333333333,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "rollup-all-combined": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "rollup-axios-d3-mixed": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "swc-standalone-all-combined": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "swc-standalone-axios-d3-mixed": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "uglifyjs-standalone-all-combined": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "uglifyjs-standalone-axios-d3-mixed": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "webpack-swc-all-combined": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "webpack-swc-axios-d3-mixed": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "webpack-terser-all-combined": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    },
+    "webpack-terser-axios-d3-mixed": {
+      "totalNodes": 29,
+      "nodeDist": {
+        "FunctionExpression": 0.034482758620689655,
+        "Identifier": 0.27586206896551724,
+        "BlockStatement": 0.034482758620689655,
+        "ReturnStatement": 0.034482758620689655,
+        "BinaryExpression": 0.2413793103448276,
+        "ParenthesizedExpression": 0.10344827586206896,
+        "ConditionalExpression": 0.034482758620689655,
+        "AssignmentExpression": 0.06896551724137931,
+        "Literal": 0.1724137931034483
+      },
+      "avgDeclaratorsPerDeclaration": 0,
+      "identifierRatio": 0.27586206896551724,
+      "ternaryRatio": 0.034482758620689655,
+      "assignmentChainRatio": 0,
+      "patternRatios": {
+        "typeofGlobal": 0,
+        "typeofSelf": 0,
+        "typeofSymbol": 0,
+        "objectToString": 0
+      }
+    }
+  }
+}
