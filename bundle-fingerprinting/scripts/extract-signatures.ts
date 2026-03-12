@@ -145,7 +145,7 @@ function getLineColFromOffset(code: string, offset: number) {
 async function main() {
   const allSignatures: Record<string, any> = {};
   
-  const bundlers = ['esbuild', 'rollup'];
+  const bundlers = await fs.readdir(DATA_DIR);
   const scenarios = ['all-combined', 'lodash-basic', 'moment-basic', 'axios-d3-mixed'];
 
   for (const bundler of bundlers) {

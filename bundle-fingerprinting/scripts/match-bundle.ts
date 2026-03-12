@@ -41,25 +41,34 @@ function calculateSimilarity(statsA: any, statsB: any) {
     const valB = statsB.nodeDist[type] || 0;
     distScore += Math.abs(valA - valB);
   }
-  score += distScore * 1.0; // Weight for node distribution
+  score += distScore * 1.5; // Slightly higher weight for full distribution
 
   // 2. Structural feature similarity
+  // Identifier ratio is a PRIMARY invariant across minifiers
+  score += Math.abs(statsA.identifierRatio - statsB.identifierRatio) * 10.0; 
+  
+  // Ternary ratio is VOLATILE (minifiers transform if-else differently) - lower weight
+  score += Math.abs(statsA.ternaryRatio - statsB.ternaryRatio) * 2.0; 
+  
   score += Math.abs(statsA.avgDeclaratorsPerDeclaration - statsB.avgDeclaratorsPerDeclaration) * 0.2;
-  score += Math.abs(statsA.identifierRatio - statsB.identifierRatio) * 5.0;
-  score += Math.abs(statsA.ternaryRatio - statsB.ternaryRatio) * 5.0;
-  score += Math.abs(statsA.assignmentChainRatio - statsB.assignmentChainRatio) * 20.0;
+  score += Math.abs(statsA.assignmentChainRatio - statsB.assignmentChainRatio) * 15.0;
 
-  // 3. Pattern similarity
+  // 3. Pattern similarity - High Weight Anchors
   if (statsA.patternRatios && statsB.patternRatios) {
       for (const p in statsA.patternRatios) {
-          score += Math.abs((statsA.patternRatios[p] || 0) - (statsB.patternRatios[p] || 0)) * 50.0;
+          const valA = statsA.patternRatios[p] || 0;
+          const valB = statsB.patternRatios[p] || 0;
+          if (valB > 0) {
+              // If the fingerprint HAS this pattern, it's a very strong signal
+              score += Math.abs(valA - valB) * 100.0;
+          }
       }
   }
   
   return score;
 }
 
-async function matchBundle(bundlePath: string) {
+export async function matchBundle(bundlePath: string) {
   const code = await fs.readFile(bundlePath, 'utf-8');
   const fingerprints = await loadFingerprints();
   
@@ -206,8 +215,9 @@ async function matchBundle(bundlePath: string) {
           }
       }
       
-      // Filter out tiny wrappers that just happen to match something
-      if (!overlap && match.score < 0.4) {
+      // Filter out high-score (low confidence) matches
+      // The threshold 0.45 is calibrated against the 24-driver matrix
+      if (!overlap && match.score < 0.45) {
           bestMatches.push(match);
       }
   }
@@ -235,4 +245,6 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(console.error);
+}
