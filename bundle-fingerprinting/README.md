@@ -33,6 +33,40 @@ The LLM-driven subagents successively evolved our fingerprinting logic from look
 By recursively traversing `BlockStatements` and `CallExpressions`, the `match-bundle` engine successfully locates embedded sub-packages (like `axios` hidden inside a larger `d3` wrapper) and scores them based on matching structural features.
 
 
+
+## Current results
+
+
+--- Final Benchmark Results ---
+┌─────────┬───────────────────────┬──────────────────┬────────────────────┬───────────────┬────────────────┐
+│ (index) │ bundler               │ scenario         │ accuracy           │ packagesFound │ falsePositives │
+├─────────┼───────────────────────┼──────────────────┼────────────────────┼───────────────┼────────────────┤
+│ 0       │ 'esbuild'             │ 'all-combined'   │ 0.8571428571428571 │ 6             │ 4              │
+│ 1       │ 'esbuild'             │ 'axios-d3-mixed' │ 0.8333333333333334 │ 5             │ 4              │
+│ 2       │ 'esbuild'             │ 'lodash-basic'   │ 1                  │ 1             │ 0              │
+│ 3       │ 'esbuild'             │ 'moment-basic'   │ 1                  │ 1             │ 0              │
+│ 4       │ 'rollup'              │ 'all-combined'   │ 0.8571428571428571 │ 6             │ 3              │
+│ 5       │ 'rollup'              │ 'axios-d3-mixed' │ 0.8333333333333334 │ 5             │ 3              │
+│ 6       │ 'rollup'              │ 'lodash-basic'   │ 1                  │ 1             │ 0              │
+│ 7       │ 'rollup'              │ 'moment-basic'   │ 1                  │ 1             │ 0              │
+│ 8       │ 'swc-standalone'      │ 'all-combined'   │ 1                  │ 8             │ 5              │
+│ 9       │ 'swc-standalone'      │ 'axios-d3-mixed' │ 1                  │ 7             │ 5              │
+│ 10      │ 'swc-standalone'      │ 'lodash-basic'   │ 1                  │ 1             │ 0              │
+│ 11      │ 'swc-standalone'      │ 'moment-basic'   │ 1                  │ 1             │ 0              │
+│ 12      │ 'uglifyjs-standalone' │ 'all-combined'   │ 0.875              │ 7             │ 4              │
+│ 13      │ 'uglifyjs-standalone' │ 'axios-d3-mixed' │ 0.8571428571428571 │ 6             │ 4              │
+│ 14      │ 'uglifyjs-standalone' │ 'lodash-basic'   │ 1                  │ 1             │ 0              │
+│ 15      │ 'uglifyjs-standalone' │ 'moment-basic'   │ 1                  │ 1             │ 0              │
+│ 16      │ 'webpack-swc'         │ 'all-combined'   │ 1                  │ 8             │ 5              │
+│ 17      │ 'webpack-swc'         │ 'axios-d3-mixed' │ 1                  │ 7             │ 5              │
+│ 18      │ 'webpack-swc'         │ 'lodash-basic'   │ 1                  │ 1             │ 0              │
+│ 19      │ 'webpack-swc'         │ 'moment-basic'   │ 1                  │ 1             │ 0              │
+│ 20      │ 'webpack-terser'      │ 'all-combined'   │ 0.75               │ 6             │ 7              │
+│ 21      │ 'webpack-terser'      │ 'axios-d3-mixed' │ 0.7142857142857143 │ 5             │ 6              │
+│ 22      │ 'webpack-terser'      │ 'lodash-basic'   │ 1                  │ 1             │ 0              │
+│ 23      │ 'webpack-terser'      │ 'moment-basic'   │ 0.5                │ 1             │ 1              │
+└─────────┴───────────────────────┴──────────────────┴────────────────────┴───────────────┴────────────────┘
+
 ## Future Work
 
 - **Live Scrapes**: Collect live bundles from high-profile production sites that ship source maps (e.g., GitHub, nyt, coursehero) to test against "real-world" obfuscation and bundling techniques. (Concept from HTTPArchive/Web Almanac discussions).
