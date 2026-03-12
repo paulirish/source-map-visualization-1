@@ -20,15 +20,21 @@
     "moment": "latest"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "latest",
+    "@rollup/plugin-node-resolve": "latest",
+    "@rollup/plugin-terser": "latest",
+    "@swc/core": "^1.15.18",
     "esbuild": "latest",
+    "oxc-parser": "latest",
     "oxfmt": "latest",
     "oxlint": "latest",
-    "oxc-parser": "latest",
     "rollup": "latest",
-    "@rollup/plugin-node-resolve": "latest",
-    "@rollup/plugin-commonjs": "latest",
-    "@rollup/plugin-terser": "latest",
     "source-map": "latest",
-    "typescript": "latest"
+    "swc-loader": "^0.2.7",
+    "terser-webpack-plugin": "^5.4.0",
+    "typescript": "latest",
+    "uglify-js": "^3.19.3",
+    "webpack": "^5.105.4",
+    "webpack-cli": "^6.0.1"
   }
 }
