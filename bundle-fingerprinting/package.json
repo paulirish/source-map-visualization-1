@@ -13,6 +13,9 @@
     "format": "oxfmt --write '**/*.{ts,js,css,html,json}'",
     "preflight": "pnpm typecheck && pnpm lint && pnpm test"
   },
+  "bin": {
+    "fingerprint-bundle": "./match-bundle"
+  },
   "dependencies": {
     "axios": "latest",
     "d3": "latest",

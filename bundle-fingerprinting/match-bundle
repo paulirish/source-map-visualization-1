@@ -1,1 +1,2 @@
-pnpm exec tsx scripts/match-bundle.ts $1
+#!/usr/bin/env sh
+node scripts/match-bundle.ts "$@"

@@ -11,6 +11,11 @@ const ROOT = path.join(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data/ground-truth');
 
 async function benchmark() {
+  const verbose = process.argv.includes('--verbose');
+  if (!verbose) {
+    console.log('Run with --verbose to see detailed AST matching logs for every node evaluated.');
+  }
+
   const bundlers = await fs.readdir(DATA_DIR);
   const results: any[] = [];
 
@@ -24,7 +29,7 @@ async function benchmark() {
       console.log(`\nBenchmarking ${bundler} / ${scenario}...`);
       
       try {
-        const predictions = await matchBundle(bundleFile);
+        const predictions = await matchBundle(bundleFile, verbose);
         const reportMap = await verifyPredictions(bundler, scenario, predictions.map((p: any) => ({
           pkg: p.pkg.split('@')[0],
           start: p.start,

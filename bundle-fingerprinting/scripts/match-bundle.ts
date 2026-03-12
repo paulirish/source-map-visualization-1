@@ -68,7 +68,7 @@ function calculateSimilarity(statsA: any, statsB: any) {
   return score;
 }
 
-export async function matchBundle(bundlePath: string) {
+export async function matchBundle(bundlePath: string, verbose = false) {
   const code = await fs.readFile(bundlePath, 'utf-8');
   const fingerprints = await loadFingerprints();
   
@@ -176,7 +176,9 @@ export async function matchBundle(bundlePath: string) {
 
         if (bestMatch && bestMatch.score < 0.8) {
           if (bestMatch.score < 0.5) {
-            console.log(`Node at ${node.start}-${node.end} (total: ${stats.total}) matches: ${bestMatch.pkg} [Score: ${bestMatch.score.toFixed(4)}]`);
+            if (verbose) {
+              console.log(`Node at ${node.start}-${node.end} (total: ${stats.total}) matches: ${bestMatch.pkg} [Score: ${bestMatch.score.toFixed(4)}]`);
+            }
             matches.push(bestMatch);
           }
         }
@@ -226,14 +228,20 @@ export async function matchBundle(bundlePath: string) {
 }
 
 async function main() {
-  const target = process.argv[2];
+  const args = process.argv.slice(2);
+  const target = args.find(a => !a.startsWith('--'));
+  const verbose = args.includes('--verbose');
   
   if (!target) {
-    console.error('Usage: tsx match-bundle.ts <path/to/bundle.js>');
+    console.error('Usage: ./match-bundle <path/to/bundle.js> [--verbose]');
     process.exit(1);
   }
 
-  const predictions = await matchBundle(target);
+  if (!verbose) {
+    console.log('💡 Run with --verbose to see detailed AST matching logs for every node evaluated.');
+  }
+
+  const predictions = await matchBundle(target, verbose);
   
   if (predictions.length > 0) {
       console.log('\n--- Match Results ---');
