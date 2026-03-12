@@ -1,0 +1,4 @@
+node_modules/
+data/temp/
+data/ground-truth/
+pnpm-lock.yaml
